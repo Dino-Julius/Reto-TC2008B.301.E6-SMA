@@ -5,7 +5,7 @@ El objetvo del reto es que al menos un auto salga de un estacionamiento y llegue
 
 Para el resto del reto, utilizando el siguiente mapa para una ciudad.
 
-![Mapa de la ciudad](image.png)
+![Mapa de la ciudad](../image.png)
 
 Los estacionamientos se encuentran numerados para poder identificar claramente en cuál estacionamiento tiene que llegar o salir un automovil.
 
