@@ -31,6 +31,7 @@ Reto-TC2008B.301.E6-SMA/                # Carpeta principal del proyecto
 │   ├── a01798380-ulisesjaramillo/      # Actividad de Ulises Jaramillo
 │   └── a01799257-jesusguzman/          # Actividad de Jesús Guzmán
 ├── Revisión 1 - Equipo 6.pdf           # Documento de la primera entrega del Reto
+├── Revisión 2 - Equipo 6.pdf           # Documento de la segunda entrega del Reto
 ├── LICENSE                          
 └── README.md                           # Este documento
 ```
