@@ -1,53 +1,88 @@
 import mesa
+from mesa.datacollection import DataCollector
 
-
-class agent(mesa.Agent):  # noqa
+class CarAgent(mesa.Agent):  
     """
-    An agent
+    An agent representing a car that might look for a parking spot.
     """
-
     def __init__(self, unique_id, model):
-        """
-        Customize the agent
-        """
-        self.unique_id = unique_id
         super().__init__(unique_id, model)
 
     def step(self):
-        """
-        Modify this method to change what an individual agent will do during each step.
-        Can include logic based on neighbors states.
-        """
+        pass
+
+class TrafficLightAgent(mesa.Agent):
+    """
+    An agent representig a traffic light that changes colors between green, yellow and red. 
+    It's purpose is to manage the traffic within the city
+    """
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def step(self):
         pass
 
 
-class model(mesa.Model):
+class ParkingAgent(mesa.Agent):
     """
-    The model class holds the model-level attributes, manages the agents, and generally handles
-    the global level of our model.
-
-    There is only one model-level parameter: how many agents the model contains. When a new model
-    is started, we want it to populate itself with the given number of agents.
-
-    The scheduler is a special model component which controls the order in which agents are activated.
+    An agent representing a parking spot.
     """
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+        self.isOccupied = False
 
-    def __init__(self, num_agents, width, height):
+class BuildingAgent(mesa.Agent):
+    """
+    An agent representing a building.
+    """
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+
+class CityModel(mesa.Model):
+    """
+    The model class manages the city grid with cars, parking spots, traffic lights and buildings.
+    """
+    def __init__(self, num_agents, parking_positions, building_positions, traffic_lights_positions, width, height):
         super().__init__()
         self.num_agents = num_agents
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.MultiGrid(width=width, height=height, torus=True)
 
-        for i in range(self.num_agents):
-            agent = agent(i, self)
-            self.schedule.add(agent)
+        # Crear y ubicar plazas de aparcamiento en posiciones específicas
+        for pos in parking_positions:
+            parking_agent = ParkingAgent(self.next_id(), self)
+            self.schedule.add(parking_agent)
+            self.grid.place_agent(parking_agent, pos)
 
+        # Crear y ubicar edificios en posiciones específicas
+        for pos in building_positions:
+            building_agent = BuildingAgent(self.next_id(), self)
+            self.schedule.add(building_agent)
+            self.grid.place_agent(building_agent, pos)
+
+        for pos in traffic_lights_positions:
+            traffic_light_agent = TrafficLightAgent(self.next_id(), self)
+            self.schedule.add(traffic_light_agent)
+            self.grid.place_agent(traffic_light_agent, pos)
+
+
+        # Crear y ubicar agentes de coches
+        for i in range(self.num_agents):
+            car_agent = CarAgent(self.next_id(), self)
+            self.schedule.add(car_agent)
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(agent, (x, y))
+            self.grid.place_agent(car_agent, (x, y))
 
-        # example data collector
-        self.datacollector = mesa.datacollection.DataCollector()
+        # Agregar el DataCollector
+        self.datacollector = DataCollector(
+            {
+                "Car Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, CarAgent)),
+                "Parking Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, ParkingAgent)),
+                "Building Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, BuildingAgent))
+            }
+        )
 
         self.running = True
         self.datacollector.collect(self)
@@ -56,5 +91,5 @@ class model(mesa.Model):
         """
         A model step. Used for collecting data and advancing the schedule
         """
-        self.datacollector.collect(self)
         self.schedule.step()
+        self.datacollector.collect(self)
