@@ -2,17 +2,16 @@ import mesa
 from mesa.datacollection import DataCollector
 
 class CarAgent(mesa.Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, start_parking, destination_parking):
         super().__init__(unique_id, model)
-        self.destination = None
+        self.start_parking = start_parking
+        self.destination_parking = destination_parking
+        # Colocar el agente en su lugar de salida al inicio
+        self.model.grid.place_agent(self, self.start_parking)
 
     def step(self):
-        if self.destination is None:
-            # Elegir un estacionamiento aleatorio como destino
-            self.destination = self.random.choice(self.model.parking_positions)
-
-        if self.pos == self.destination:
-            # El agente permanece en su destino sin bloquear a otros
+        if self.pos == self.destination_parking:
+            # Si el agente ha llegado a su destino, permanece allí
             return
 
         # Obtener direcciones permitidas desde la posición actual
@@ -23,8 +22,8 @@ class CarAgent(mesa.Agent):
         for direction in possible_directions:
             next_position = self.get_next_position(direction)
             
-            # Si la posición es el destino de estacionamiento, permite que el agente se mueva allí sin restricción de colisión
-            if next_position == self.destination:
+            # Permitir movimiento a la posición de destino sin restricciones
+            if next_position == self.destination_parking:
                 valid_moves.append(next_position)
             else:
                 # Verificar si hay semáforo en rojo en la próxima posición
@@ -32,7 +31,7 @@ class CarAgent(mesa.Agent):
                 if any(isinstance(agent, TrafficLightAgent) and agent.state == "rojo" for agent in cell_contents):
                     continue  # Evitar moverse si el semáforo está en rojo
 
-                # Verificar si la posición está libre de edificios, glorietas, y otros coches
+                # Verificar si la posición está libre de edificios, glorietas y otros coches
                 if not any(isinstance(agent, (BuildingAgent, RoundaboutAgent, CarAgent)) for agent in cell_contents):
                     valid_moves.append(next_position)
 
@@ -52,6 +51,7 @@ class CarAgent(mesa.Agent):
         elif direction == "Oeste":
             return (x - 1, y)
         return self.pos
+
 
 class TrafficLightAgent(mesa.Agent):
     """
@@ -105,6 +105,7 @@ class CityModel(mesa.Model):
         #Street directions
         self.street_directions = street_directions
         self.parking_positions = parking_positions  # Guardar las posiciones de los estacionamientos
+        self.agent_messages = []  # Lista para almacenar los mensajes de cada agente
 
         # Crear y ubicar plazas de aparcamiento en posiciones específicas
         for pos in parking_positions:
@@ -135,10 +136,15 @@ class CityModel(mesa.Model):
 
         # Crear y ubicar agentes de coches en estacionamientos
         for i in range(self.num_agents):
-            car_agent = CarAgent(self.next_id(), self)
+            start_index = self.random.choice(range(len(parking_positions)))  # Índice de salida
+            destination_index = self.random.choice(range(len(parking_positions)))  # Índice de destino
+
+            start_parking = parking_positions[start_index]
+            destination_parking = parking_positions[destination_index]
+
+            car_agent = CarAgent(self.next_id(), self, start_parking, destination_parking)
             self.schedule.add(car_agent)
-            start_parking = self.random.choice(parking_positions)
-            self.grid.place_agent(car_agent, start_parking)
+            self.agent_messages.append(f"Agente {car_agent.unique_id} salió de estacionamiento {start_index + 1} y se dirige a {destination_index + 1}")
 
         # Agregar el DataCollector
         self.datacollector = DataCollector(
@@ -151,6 +157,10 @@ class CityModel(mesa.Model):
 
         self.running = True
         self.datacollector.collect(self)
+
+    def get_agent_messages(self):
+        return "\n".join(self.agent_messages)
+
 
     def step(self):
         """

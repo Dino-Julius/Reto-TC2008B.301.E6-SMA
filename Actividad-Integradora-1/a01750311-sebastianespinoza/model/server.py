@@ -1,5 +1,15 @@
 import mesa
 from .model import CityModel, CarAgent, ParkingAgent, TrafficLightAgent, BuildingAgent, RoundaboutAgent
+from mesa.visualization.modules import TextElement
+
+# Definir el TextElement para mostrar el mensaje de salida y destino de cada agente
+class AgentMessageElement(mesa.visualization.TextElement):
+    def __init__(self):
+        super().__init__()
+
+    def render(self, model):
+        # Recupera y devuelve los mensajes de los agentes
+        return model.get_agent_messages()
 
 def circle_portrayal_example(agent):
     if agent is None:
@@ -342,15 +352,12 @@ street_directions = {
 canvas_element = mesa.visualization.CanvasGrid(
     circle_portrayal_example, 24, 24, 500, 500
 )
-chart_element = mesa.visualization.ChartModule([
-    {"Label": "Car Count", "Color": "Pink"},
-    {"Label": "Parking Count", "Color": "Yellow"},
-    {"Label": "Building Count", "Color": "Blue"}
-])
+
+agent_message_element = AgentMessageElement()  # Elemento para mostrar el mensaje inicial de cada agente
 
 # Parámetros del modelo, incluyendo las posiciones de los estacionamientos y edificios
 model_kwargs = {
-    "num_agents": 30,
+    "num_agents": 1,
     "parking_positions": parking_positions,
     "building_positions": building_positions,
     "traffic_lights_positions": traffic_lights_positions,
@@ -363,7 +370,7 @@ model_kwargs = {
 # Inicialización del servidor
 server = mesa.visualization.ModularServer(
     CityModel,
-    [canvas_element, chart_element],
+    [canvas_element, agent_message_element],
     "Cityprojecta01750311",
     model_kwargs,
 )
