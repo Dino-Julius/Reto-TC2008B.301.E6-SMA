@@ -41,7 +41,7 @@ def circle_portrayal_example(agent):
             "Layer": 0,
             "w": 1.0,
             "h": 1.0,
-            "Color": "Green"
+            "Color": "Green" if agent.state == "verde" else "Red"  # Cambiar color basado en el estado
         }
     elif isinstance(agent, RoundaboutAgent):
         portrayal = {
@@ -142,7 +142,11 @@ building_positions = [
 ]
 
 traffic_lights_positions = [
-    #(1,1),
+    (6,2),(7,2),
+    (0,6),(1,6),
+    (6,16),(7,16),
+    (6,21),(7,21),
+    (18,7),(19,7),
 ]
 
 roundabout_positions = [

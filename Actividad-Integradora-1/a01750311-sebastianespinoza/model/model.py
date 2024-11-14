@@ -12,7 +12,7 @@ class CarAgent(mesa.Agent):
             self.destination = self.random.choice(self.model.parking_positions)
 
         if self.pos == self.destination:
-            # Detenerse si se ha alcanzado el destino
+            # El agente permanece en su destino sin bloquear a otros
             return
 
         # Obtener direcciones permitidas desde la posición actual
@@ -22,11 +22,19 @@ class CarAgent(mesa.Agent):
         valid_moves = []
         for direction in possible_directions:
             next_position = self.get_next_position(direction)
-        
-            # Verificar si la posición está libre de edificios, glorietas, y otros coches
-            cell_contents = self.model.grid.get_cell_list_contents([next_position])
-            if not any(isinstance(agent, (BuildingAgent, RoundaboutAgent, CarAgent)) for agent in cell_contents):
+            
+            # Si la posición es el destino de estacionamiento, permite que el agente se mueva allí sin restricción de colisión
+            if next_position == self.destination:
                 valid_moves.append(next_position)
+            else:
+                # Verificar si hay semáforo en rojo en la próxima posición
+                cell_contents = self.model.grid.get_cell_list_contents([next_position])
+                if any(isinstance(agent, TrafficLightAgent) and agent.state == "rojo" for agent in cell_contents):
+                    continue  # Evitar moverse si el semáforo está en rojo
+
+                # Verificar si la posición está libre de edificios, glorietas, y otros coches
+                if not any(isinstance(agent, (BuildingAgent, RoundaboutAgent, CarAgent)) for agent in cell_contents):
+                    valid_moves.append(next_position)
 
         if valid_moves:
             # Elegir una posición válida al azar y moverse
@@ -47,14 +55,17 @@ class CarAgent(mesa.Agent):
 
 class TrafficLightAgent(mesa.Agent):
     """
-    An agent representig a traffic light that changes colors between green, yellow and red. 
-    It's purpose is to manage the traffic within the city
+    An agent representing a traffic light that changes colors between green and red.
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.state = "verde"  # Inicialmente en verde
 
-    def step(self):
-        pass
+    def toggle_state(self):
+        """
+        Change the traffic light state between green and red.
+        """
+        self.state = "rojo" if self.state == "verde" else "verde"
 
 
 class ParkingAgent(mesa.Agent):
@@ -87,6 +98,7 @@ class CityModel(mesa.Model):
     def __init__(self, num_agents, parking_positions, building_positions, roundabout_positions, traffic_lights_positions, width, height, street_directions):
         super().__init__()
         self.num_agents = num_agents
+        self.step_count = 0 # Contador para semaforo
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.MultiGrid(width=width, height=height, torus=True)
 
@@ -141,5 +153,12 @@ class CityModel(mesa.Model):
         """
         A model step. Used for collecting data and advancing the schedule
         """
+        # Incrementar el contador de pasos y cambiar el estado del semáforo cada 30 pasos
+        self.step_count += 1
+        if self.step_count >= 30:
+            for agent in self.schedule.agents:
+                if isinstance(agent, TrafficLightAgent):
+                    agent.toggle_state()
+            self.step_count = 0  # Reiniciar el contador
         self.schedule.step()
         self.datacollector.collect(self)
