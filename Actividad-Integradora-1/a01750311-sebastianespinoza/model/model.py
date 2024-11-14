@@ -144,14 +144,12 @@ class CityModel(mesa.Model):
 
             car_agent = CarAgent(self.next_id(), self, start_parking, destination_parking)
             self.schedule.add(car_agent)
-            self.agent_messages.append(f"Agente {car_agent.unique_id} salió de estacionamiento {start_index + 1} y se dirige a {destination_index + 1}")
+            self.agent_messages.append(f"Agente {car_agent.unique_id - 203} salió de estacionamiento {start_index + 1} y se dirige a {destination_index + 1}")
 
         # Agregar el DataCollector
         self.datacollector = DataCollector(
             {
                 "Car Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, CarAgent)),
-                "Parking Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, ParkingAgent)),
-                "Building Count": lambda m: sum(1 for agent in m.schedule.agents if isinstance(agent, BuildingAgent))
             }
         )
 
@@ -159,7 +157,7 @@ class CityModel(mesa.Model):
         self.datacollector.collect(self)
 
     def get_agent_messages(self):
-        return "\n".join(self.agent_messages)
+        return "<br>".join(self.agent_messages)
 
 
     def step(self):

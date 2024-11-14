@@ -357,7 +357,7 @@ agent_message_element = AgentMessageElement()  # Elemento para mostrar el mensaj
 
 # Parámetros del modelo, incluyendo las posiciones de los estacionamientos y edificios
 model_kwargs = {
-    "num_agents": 1,
+    "num_agents": 3,
     "parking_positions": parking_positions,
     "building_positions": building_positions,
     "traffic_lights_positions": traffic_lights_positions,
