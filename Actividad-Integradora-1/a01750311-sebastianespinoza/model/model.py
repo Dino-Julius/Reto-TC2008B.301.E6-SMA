@@ -57,9 +57,9 @@ class TrafficLightAgent(mesa.Agent):
     """
     An agent representing a traffic light that changes colors between green and red.
     """
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, initial_state="verde"):
         super().__init__(unique_id, model)
-        self.state = "verde"  # Inicialmente en verde
+        self.state = initial_state  # Inicialmente en verde
 
     def toggle_state(self):
         """
@@ -112,25 +112,28 @@ class CityModel(mesa.Model):
             self.schedule.add(parking_agent)
             self.grid.place_agent(parking_agent, pos)
 
-        # Crear y ubicar edificios en posiciones específicas
+        # Crear y ubicar edificios 
         for pos in building_positions:
             building_agent = BuildingAgent(self.next_id(), self)
             self.schedule.add(building_agent)
             self.grid.place_agent(building_agent, pos)
-
+        
+        #Crear y ubicar rotonda
         for pos in roundabout_positions:
             roundabout_agent = RoundaboutAgent(self.next_id(), self)
             self.schedule.add(roundabout_agent)
             self.grid.place_agent(roundabout_agent, pos)
 
         #Crear y ubicar semaforos
-        for pos in traffic_lights_positions:
-            traffic_light_agent = TrafficLightAgent(self.next_id(), self)
+        for i,pos in enumerate(traffic_lights_positions):
+            #Si el indice es par verde, impar rojo
+            initial_state = "verde" if i % 4 < 2 else "rojo"
+            traffic_light_agent = TrafficLightAgent(self.next_id(), self, initial_state=initial_state)
             self.schedule.add(traffic_light_agent)
             self.grid.place_agent(traffic_light_agent, pos)
 
 
-        # Crear y ubicar agentes de coches
+        # Crear y ubicar agentes de coches en estacionamientos
         for i in range(self.num_agents):
             car_agent = CarAgent(self.next_id(), self)
             self.schedule.add(car_agent)

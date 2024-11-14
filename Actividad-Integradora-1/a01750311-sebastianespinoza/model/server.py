@@ -76,7 +76,7 @@ parking_positions = [
     (20, 4) #P17
 ]
 
-# Building spot
+# Building spots
 building_positions = [
     # Edificio 1
     (2 , 12), (3, 12), (5,12),
@@ -142,11 +142,16 @@ building_positions = [
 ]
 
 traffic_lights_positions = [
-    (6,2),(7,2),
-    (0,6),(1,6),
-    (6,16),(7,16),
-    (6,21),(7,21),
-    (18,7),(19,7),
+    (6,2),(7,2), #Verde
+    (2,5), (2,4), #Rojo
+    (0,6),(1,6), #Verde
+    (5,1), (5,0), #Rojo
+    (6,16),(7,16), #Verde
+    (17,9),(17,8), #Rojo
+    (6,21),(7,21), #Verde
+    (8,18),(8,17), #Rojo
+    (18,7),(19,7), #Verde
+    (8,23),(8,22) #Rojo
 ]
 
 roundabout_positions = [
