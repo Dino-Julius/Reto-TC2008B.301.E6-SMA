@@ -55,7 +55,7 @@ sysinfo.txt
 # Builds
 *.apk
 *.aab
-*.unitypackage
+.unitypackage
 *.app
 
 # Crashlytics generated file
@@ -76,3 +76,6 @@ build/
 
 # macOS
 .DS_Store
+
+# ! Temp Unity Proyect
+SMA Reto Visualizador/
