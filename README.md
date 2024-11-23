@@ -23,18 +23,20 @@ El reto consiste en proponer una solución al problema de movilidad urbana en M�
 ## Estructura del proyecto
 
 ```bash
-Reto-TC2008B.301.E6-SMA/                # Carpeta principal del proyecto
-├── .gitignore
-├── Actividad-Integradora-1/            # Carpeta principal para las entregas de la Actividad Integradora 1
-│   ├── a01749879-juliovivas/           # Actividad de Julio Vivas
-│   ├── a01750311-sebastianespinoza/    # Actividad de Sebastián Espinoza
-│   ├── a01798380-ulisesjaramillo/      # Actividad de Ulises Jaramillo
-│   └── a01799257-jesusguzman/          # Actividad de Jesús Guzmán
-├── SMA/                                # Carpeta que contiene el modelo en MESA de Movilidad Urbana
-├── Revisión 1 - Equipo 6.pdf           # Documento de la primera entrega del Reto
-├── Revisión 2 - Equipo 6.pdf           # Documento de la segunda entrega del Reto
+Reto-TC2008B.301.E6-SMA/                    # Carpeta principal del proyecto
+├── .gitignore  
+├── Actividad-Integradora-1/                # Carpeta principal para las entregas de la Actividad Integradora 1
+│   ├── a01749879-juliovivas/               # Actividad de Julio Vivas
+│   ├── a01750311-sebastianespinoza/        # Actividad de Sebastián Espinoza
+│   ├── a01798380-ulisesjaramillo/          # Actividad de Ulises Jaramillo
+│   └── a01799257-jesusguzman/              # Actividad de Jesús Guzmán
+├── SMA/                                    # Carpeta que contiene el modelo en MESA de Movilidad Urbana
+├── Revisión 1 - Equipo 6.pdf               # Documento de la primera entrega del Reto
+├── Revisión 2 - Equipo 6.pdf               # Documento de la segunda entrega del Reto
+├── Revisión 3 - Equipo 6.pdf               # Documento de la tercera entrega del Reto 
+├── SMA_Visualizador_Equipo6.unitypackage   # Paquete de Unity con el visualizador de la simulación
 ├── LICENSE                          
-└── README.md                           # Este documento
+└── README.md                               # Este documento
 ```
 
 ## Descargar el proyecto

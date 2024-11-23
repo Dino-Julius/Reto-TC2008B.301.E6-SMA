@@ -81,14 +81,12 @@ class MovilityModel(Model):
         for building in self.buildings:
             building_agent = Building(self.next_id(), self)
             self.schedule.add(building_agent)
-            self.grid.place_agent(
-                building_agent, (building["x"], building["y"]))
+            self.grid.place_agent(building_agent, (building["x"], building["y"]))
 
         # Place the parking spots in the grid
         for parking in self.parsed_parking_spots:
             # print("parking values: ", parking)
-            parking_agent = Parking(
-                self.next_id(), self, direction=None, parking_id=parking["id"])
+            parking_agent = Parking(self.next_id(), self, direction=None, parking_id=parking["id"])
             self.schedule.add(parking_agent)
             self.grid.place_agent(parking_agent, (parking["x"], parking["y"]))
             # Determine the exit direction of the parking slot based on the neighboring road cells.
@@ -112,19 +110,15 @@ class MovilityModel(Model):
         # Place the traffic lights in the grid
         for i, traffic_light in enumerate(self.traffic_lights):
             initial_state = "green" if i % 4 < 2 else "red"
-            tl_agent = TrafficLight(
-                self.next_id(), self, direction=None, initial_state=initial_state)
+            tl_agent = TrafficLight(self.next_id(), self, direction=None, initial_state=initial_state)
             self.schedule.add(tl_agent)
-            self.grid.place_agent(
-                tl_agent, (traffic_light["x"], traffic_light["y"]))
+            self.grid.place_agent(tl_agent, (traffic_light["x"], traffic_light["y"]))
 
-            possible_directions = self.grid.get_neighborhood(
-                tl_agent.pos, moore=False, include_center=False)
+            possible_directions = self.grid.get_neighborhood(tl_agent.pos, moore=False, include_center=False)
             road_directions = []
 
             for possible_direction in possible_directions:
-                cell_contents = self.grid.get_cell_list_contents(
-                    [possible_direction])
+                cell_contents = self.grid.get_cell_list_contents([possible_direction])
                 for agent in cell_contents:
                     if isinstance(agent, Road):
                         if tl_agent.direction is None:
@@ -143,11 +137,9 @@ class MovilityModel(Model):
                     filtered_directions = []
                     # Filtrar las direcciones de las carreteras para que coincidan con el eje del semáforo
                     if tl_agent.direction == 'y':
-                        filtered_directions = [
-                            direction for direction in road_directions if direction in ['DW', 'UP']]
+                        filtered_directions = [direction for direction in road_directions if direction in ['DW', 'UP']]
                     elif tl_agent.direction == 'x':
-                        filtered_directions = [
-                            direction for direction in road_directions if direction in ['LF', 'RH']]
+                        filtered_directions = [direction for direction in road_directions if direction in ['LF', 'RH']]
 
                     # Determinar la dirección real del semáforo
                     if filtered_directions:
@@ -170,24 +162,19 @@ class MovilityModel(Model):
 
         # Place the cars in the grid
         for i in range(simpleCar_agents_limit):
-            start_index = self.random.choice(
-                range(len(self.parsed_parking_spots)))
-            destination_index = self.random.choice(
-                range(len(self.parsed_parking_spots)))
+            start_index = self.random.choice(range(len(self.parsed_parking_spots)))
+            destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
             start_parking = self.parsed_parking_spots[start_index - 1]
             destination_parking = self.parsed_parking_spots[destination_index - 1]
 
             start_coords = (start_parking["x"], start_parking["y"])
-            destination_coords = (
-                destination_parking["x"], destination_parking["y"])
+            destination_coords = (destination_parking["x"], destination_parking["y"])
 
-            simpleCar_Agent = SimpleCar(
-                self.next_id(), self, start_coords, destination_coords)
+            simpleCar_Agent = SimpleCar(self.next_id(), self, start_coords, destination_coords)
 
             self.schedule.add(simpleCar_Agent)
-            self.message.append(f"Agente {simpleCar_Agent.unique_id} inicia en {
-                                start_index} y va a {destination_index}")
+            self.message.append(f"Agente {simpleCar_Agent.unique_id} inicia en {start_index} y va a {destination_index}")
 
         # Agregar al datacollector
         self.datacollector = DataCollector(

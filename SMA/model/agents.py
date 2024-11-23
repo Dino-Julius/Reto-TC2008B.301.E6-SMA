@@ -41,8 +41,7 @@ class SimpleCar(Agent):
         self.graph = self.build_graph(self.model.valid_moves)
 
         try:
-            self.route = nx.shortest_path(
-                self.graph, self.pos, self.destination)
+            self.route = nx.shortest_path(self.graph, self.pos, self.destination)
             self.route_directions = self.get_directions_from_path(self.route)
         except nx.NetworkXNoPath:
             self.route = None
@@ -83,8 +82,7 @@ class SimpleCar(Agent):
                 valid_moves.append(next_position)
             else:
                 # Verificar si hay semáforo en rojo en la próxima posición
-                cell_contents = self.model.grid.get_cell_list_contents([
-                                                                       next_position])
+                cell_contents = self.model.grid.get_cell_list_contents([next_position])
                 if any(isinstance(agent, TrafficLight) and agent.state == "rojo" for agent in cell_contents):
                     continue  # Evitar moverse si el semáforo está en rojo
 
@@ -152,12 +150,10 @@ class SimpleCar(Agent):
         cell_contents = self.model.grid.get_cell_list_contents([next_position])
 
         # Verificar si hay un semáforo en rojo
-        traffic_light = any(isinstance(agent, TrafficLight)
-                            and agent.state == "red" for agent in cell_contents)
+        traffic_light = any(isinstance(agent, TrafficLight) and agent.state == "red" for agent in cell_contents)
 
         # Verificar si hay otro coche en la siguiente posición
-        other_car = any(isinstance(agent, SimpleCar)
-                        for agent in cell_contents)
+        other_car = any(isinstance(agent, SimpleCar) for agent in cell_contents)
 
         if not traffic_light and not other_car:
             # Mover al siguiente nodo en la ruta
@@ -166,10 +162,8 @@ class SimpleCar(Agent):
         elif other_car or self.destination != self.pos:
             # Recalcular la ruta si hay otro coche en la siguiente posición
             try:
-                self.route = nx.shortest_path(
-                    self.graph, self.pos, self.destination)
-                self.route_directions = self.get_directions_from_path(
-                    self.route)
+                self.route = nx.shortest_path(self.graph, self.pos, self.destination)
+                self.route_directions = self.get_directions_from_path(self.route)
             except nx.NetworkXNoPath:
                 self.route = None
                 print(f"No hay camino entre {self.pos} y {self.destination}")
@@ -287,8 +281,7 @@ class TrafficLight(Agent):
             self.counter = 0
 
         # Comunicación con el semáforo más cercano
-        neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=False, include_center=False)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=False, include_center=False)
         for neighbor in neighbors:
             if isinstance(neighbor, TrafficLight) and neighbor.direction == self.direction:
                 my_waiting_cars = self.count_waiting_cars()
