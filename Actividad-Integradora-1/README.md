@@ -95,7 +95,8 @@ Para descargar y ejecutar el proyecto, sigue estos pasos:
 2. Navega al directorio del proyecto:
     ```sh
     cd Reto-TC2008B.301.E6-SMA
-    cd matrícula-nombreapellido
+    cd Actividad-Integradora-1
+    cd SMA
     ```
 
 3. Instala las dependencias:
