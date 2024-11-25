@@ -9,6 +9,9 @@ Clases:
 '''
 
 import mesa
+import json
+import requests
+
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
@@ -190,9 +193,45 @@ class MovilityModel(Model):
         '''
         Avanzar el modelo en un paso.
         '''
+        agents_data = []
 
         self.schedule.step()
         self.datacollector.collect(self)
+        for agent in self.schedule.agents:
+            agent_info = None
+            if isinstance(agent, SimpleCar):
+                for key, value in parking_spots.items():
+                    if value == agent.start:
+                        parkingSpot = key
+                        break
+
+
+                new_pos = ((agent.pos[1] * 10 + 5), (agent.pos[0] * 10 + 5) * -1)
+                agent_info = {
+                    "id": agent.unique_id,
+                    "type": "SimpleCar",
+                    "coordinates": new_pos,
+                    "parkingSpot" : key  
+                }
+            elif isinstance(agent, TrafficLight):
+                agent_info = {
+                    "id": agent.unique_id,
+                    "type": "TrafficLight",
+                    "state": agent.state
+                }
+            
+            if agent_info is not None:
+                agents_data.append(agent_info)
+
+        agents_json = json.dumps(agents_data, indent=4)
+        #print(agents_json)
+
+        response = requests.post('http://localhost:5000/update_routes', json=agents_data)
+        if response.status_code == 200:
+            print("Datos enviados exitosamente")
+        else:
+            print(f"Error al enviar datos: {response.status_code}")
+        
 
     def get_agent_messages(self):
         '''

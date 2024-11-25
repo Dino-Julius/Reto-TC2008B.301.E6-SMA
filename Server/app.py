@@ -2,42 +2,20 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# Rutas predefinidas para hacer pruebas en unity.
-routes = [
-    {
-        "id": 1,
-        "path": [
-            {"latitude": 35, "longitude": -45},
-            {"latitude": 47, "longitude": -45},
-            {"latitude": 47, "longitude": -14},
-            {"latitude": 13, "longitude": -14},
-            {"latitude": 13, "longitude": -194},
-            {"latitude": 45, "longitude": -194},
-            {"latitude": 45, "longitude": -205},
-            
-        ],
-    },
-    {
-        "id": 2,
-        "path": [
-            {"latitude": 156, "longitude": -205},
-            {"latitude": 168, "longitude": -205},
-            {"latitude": 168, "longitude": -155},
-            {"latitude": 227, "longitude": -155},
-            {"latitude": 227, "longitude": -14},
-            {"latitude": 135, "longitude": -14},
-            {"latitude": 135, "longitude": -24},
+# Inicialmente, las rutas están vacías
+routes = []
 
+@app.route('/update_routes', methods=['POST'])
+def update_routes():
+    global routes
+    data = request.get_json()
+    routes = data
+    print("Rutas actualizadas:", routes)  # Imprimir las rutas actualizadas
+    return jsonify({"message": "Routes updated successfully"}), 200
 
-           
-            
-        ],
-    },
-]
-
-@app.route('/get_routes', methods=['POST'])
+@app.route('/get_routes', methods=['GET'])
 def get_routes():
-    return jsonify(routes)
+    return jsonify(routes), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
