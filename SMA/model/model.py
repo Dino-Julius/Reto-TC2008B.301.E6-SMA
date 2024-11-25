@@ -219,6 +219,13 @@ class MovilityModel(Model):
                     "type": "TrafficLight",
                     "state": agent.state
                 }
+            #elif isinstance(agent, NOMBRE DEL PEATON):
+            #new_pos = ((agent.pos[1] * 10 + 5), (agent.pos[0] * 10 + 5) * -1)
+            #agent_info = {
+            #     "id": agent.unique_id,
+            #     "type": "Pedestrian",
+            #     "coordinates": new_pos, 
+            # }
             
             if agent_info is not None:
                 agents_data.append(agent_info)
