@@ -82,27 +82,27 @@ def get_directions_from_path(path):
 # Construye el grafo
 G = build_graph(street_directions)
 
-source = (2, 14)
-target = (20, 4)
-# try:
-#     shortest_path = nx.shortest_path(G, source=source, target=target)
-#     print("Camino más corto:", shortest_path)
-#     directions = get_directions_from_path(shortest_path)
-#     print("Direcciones del camino más corto:", directions)
-# except nx.NetworkXNoPath:
-#     print(f"No hay camino entre {source} y {target}")
+source = (17, 21)
+target = (9, 2)
+try:
+    shortest_path = nx.shortest_path(G, source=source, target=target)
+    print("Camino más corto:", shortest_path)
+    directions = get_directions_from_path(shortest_path)
+    print("Direcciones del camino más corto:", directions)
+except nx.NetworkXNoPath:
+    print(f"No hay camino entre {source} y {target}")
 
 # Ajusta el tamaño de la figura
-plt.figure(figsize=(15, 15))  # Cambia los valores según sea necesario
+plt.figure(figsize=(12, 12))  # Cambia los valores según sea necesario
 
 # Posiciones de los nodos
 pos = {node: node for node in G.nodes()}
 
 # Dibuja los nodos
-nx.draw_networkx_nodes(G, pos, node_size=15, node_color='green')
+nx.draw_networkx_nodes(G, pos, node_size=12, node_color='green')
 
 # Dibuja las aristas con flechas
-nx.draw_networkx_edges(G, pos, arrowstyle='->', arrowsize=10)
+nx.draw_networkx_edges(G, pos, arrowstyle='->', arrowsize=15)
 
 # Dibuja las etiquetas con un tamaño de fuente más pequeño
 # nx.draw_networkx_labels(G, pos, font_size=8)
@@ -113,11 +113,11 @@ nx.draw_networkx_edges(G, pos, arrowstyle='->', arrowsize=10)
 #     texts.append(plt.text(x, y, str(nodo), fontsize=8))
 # adjust_text(texts, arrowprops=dict(arrowstyle='->', color='black'))
 
-# # Resalta el camino más corto
-# if 'shortest_path' in locals():
-#     path_edges = list(zip(shortest_path, shortest_path[1:]))
-#     nx.draw_networkx_nodes(G, pos, nodelist=shortest_path, node_color='red', node_size=20)
-#     nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', arrowsize=12)
+# Resalta el camino más corto
+if 'shortest_path' in locals():
+    path_edges = list(zip(shortest_path, shortest_path[1:]))
+    nx.draw_networkx_nodes(G, pos, nodelist=shortest_path, node_color='red', node_size=20)
+    nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='red', arrowsize=12)
 
 # Configuraciones adicionales
 plt.gca()
