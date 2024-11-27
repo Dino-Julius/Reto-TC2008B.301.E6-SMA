@@ -1,9 +1,9 @@
-'''
+"""
 Este módulo configura y lanza un servidor de visualización para el modelo de movilidad utilizando Mesa.
 
 Clases:
     AgentMessageElement: Elemento de texto para mostrar mensajes de agentes en la visualización.
-    
+
 Funciones:
     agents_portrayal(agent: Agent): Determina cómo se muestra un agente en la cuadrícula del servidor de Mesa.
 
@@ -14,7 +14,7 @@ Variables:
     agent_message_element (AgentMessageElement): Elemento para mostrar mensajes iniciales de los agentes.
     model_kwargs (dict): Parámetros del modelo, incluyendo el límite de agentes SimpleCar.
     server (ModularServer): Servidor modular de Mesa configurado con el modelo de movilidad.
-'''
+"""
 
 import mesa
 
@@ -31,27 +31,27 @@ from model.utils import Directions
 
 
 class AgentMessageElement(mesa.visualization.TextElement):
-    '''
+    """
     Elemento de texto para mostrar mensajes de agentes en la visualización.
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Inicializa el elemento de texto.
-        '''
+        """
         super().__init__()
 
     def render(self, model):
-        '''
+        """
         Renderiza el elemento de texto.
-        '''
+        """
 
         # Recupera y devuelve los mensajes de los agentes
         return model.get_agent_messages()
 
 
 def agents_portrayal(agent: Agent):
-    '''
+    """
     Determina cómo se muestra un agente en la cuadrícula del servidor de mesa.
 
     :param agent: El agente que se va a representar.
@@ -80,7 +80,7 @@ def agents_portrayal(agent: Agent):
     - Parking: Se representa con un rectángulo amarillo.
     - Building: Se representa con un rectángulo azul.
     - Roundabout: Se representa con un rectángulo marrón.
-    '''
+    """
 
     if agent is None:
         return
@@ -98,7 +98,7 @@ def agents_portrayal(agent: Agent):
             "Filled": "true",
             "Layer": 1,
             "scale": 1,
-            "text": str(agent.unique_id),
+            "text": str(agent.id),
             "text_color": "Black"
         })
 
@@ -110,7 +110,7 @@ def agents_portrayal(agent: Agent):
             "w": 1.0,
             "h": 1.0,
             "Color": "green" if agent.state == "green" else "red",
-            # "text": str(agent.direction),
+            "text": str(agent.id),
             # "text_color": "Black"
         }
 
@@ -173,7 +173,7 @@ agent_message_element = AgentMessageElement()
 model_kwargs = {
     "environment": CITY,
     "valid_moves": street_directions,
-    "simpleCar_agents_limit": Slider("Simple Car Agent Limit", value=1, min_value=2, max_value=100, step=2),
+    "simplecar_agents_limit": Slider("Simple Car Agent Limit", value=1, min_value=2, max_value=100, step=2),
 }
 
 # Inicializa el servidor

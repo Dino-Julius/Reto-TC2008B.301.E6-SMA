@@ -3,7 +3,7 @@ SMA en MESA: Modelo de Movilidad Urbana
 
 El modelo de movilidad urbana es un sistema multiagente (SMA) que simula el tráfico de automóviles en una ciudad. La ciudad cuenta con una red de calles, semáforos y estacionamientos. Los autos navegan por la ciudad de manera inteligente, evitando obstáculos y respetando los semáforos.
 
-![Mapa de la ciudad](image.png)
+![Mapa de la ciudad](assets/image.png)
 
 Los estacionamientos se encuentran numerados para poder identificar claramente en cuál estacionamiento tiene que llegar o salir un automovil.
 
@@ -22,9 +22,10 @@ SMA/                                    # Carpeta principal del proyecto
 ├── assets/                             # Carpeta que contiene los recursos necesarios para la simulación
 ├── model/                              # Carpeta que contiene el modelo de agentes
 ├── tests/                              # Carpeta que contiene las pruebas del modelo de agentes
+├── app.py                              # Script para ejecutar el servidor 
 ├── README.md                           # Este documento
 ├── run.py                              # Script para ejecutar la simulación
-└── setup.py                            # Archivo de configuración de la simulación
+└── setup.py                            # Script de configuración de la simulación
 ```
 
 ## Instrucciones de Simulación:

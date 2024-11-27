@@ -1,4 +1,4 @@
-'''
+"""
 This is a representation of the city where the agent will move in a grid.
 
 Movement abbreviations in CITY:
@@ -20,7 +20,7 @@ Description of street_directions:
     The key is a tuple with the coordinates (row, col) of the street.
     The value is a list with the possible movements that can be made from that street.
     The movements are represented by the abbreviations used in CITY.
-'''
+"""
 CITY = [
     ["DW", "DW", "LF", "LF", "LF", "LF", "LF", "LF", "TL", "LF", "LF", "LF",
         "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF"],

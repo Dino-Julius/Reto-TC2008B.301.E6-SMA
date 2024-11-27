@@ -1,4 +1,4 @@
-'''
+"""
 Este módulo define varias clases de agentes para un modelo de simulación de ciudad utilizando el framework Mesa. Los agentes incluyen:
 1. `SimpleCar`: Representa un coche que se mueve desde un lugar de estacionamiento inicial hasta un lugar de estacionamiento de destino, respetando las direcciones de las carreteras, otros coches y semáforos.
 2. `Building`: Representa un edificio estático en la ciudad para fines de visualización.
@@ -11,26 +11,28 @@ El agente SimpleCar incluye métodos para aplicar movimientos, moverse basado en
 El agente TrafficLight incluye métodos para alternar su estado y avanzar en la simulación basado en un temporizador.
 Los otros agentes son estáticos y no realizan ninguna acción durante los pasos de la simulación.
 Además, el módulo incluye una función auxiliar `get_direction` para calcular la nueva posición de un agente basado en una dirección dada.
-'''
+"""
 
 from mesa import Agent
 
 import networkx as nx
 
-from model.utils import Directions, RawDirections
+from model.environment import parking_spots
+from model.utils import Directions, RawDirections, find_parking_number
 
 
 class SimpleCar(Agent):
-    '''
+    """
     Agente que representa un coche simple en la ciudad. Renderiza un coche en la cuadrícula.
-    '''
+    """
 
-    def __init__(self, unique_id, model, start, destination):
-        '''
+    def __init__(self, unique_id, model, num, start, destination):
+        """
         Crear un nuevo agente de coche con un ID único, referencia al modelo, posición de inicio y posición de destino.
-        '''
+        """
 
         super().__init__(unique_id, model)
+        self.id = num + 1
         self.start = start
         self.destination = destination
 
@@ -39,16 +41,21 @@ class SimpleCar(Agent):
 
         # Inicializar el grafo de la ciudad y calcular la mejor ruta
         self.graph = self.build_graph(self.model.valid_moves)
+        self.direction = "XD"
+        self.update_direction()
 
         try:
-            self.route = nx.shortest_path(self.graph, self.pos, self.destination)
+            self.route = nx.shortest_path(
+                self.graph, self.pos, self.destination)
             self.route_directions = self.get_directions_from_path(self.route)
         except nx.NetworkXNoPath:
             self.route = None
-            print(f"No hay camino entre {self.pos} y {self.destination}")
+            pos_number = find_parking_number(self.pos, parking_spots)
+            dest_number = find_parking_number(self.destination, parking_spots)
+            print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
 
     def apply_movement(self, next_direction: str):
-        '''
+        """
         Al aplicar la siguiente dirección, el coche se moverá a la siguiente celda en la cuadrícula.
         Esto utiliza el enum RawDirections para obtener el desplazamiento de la siguiente celda.
         Args:
@@ -56,16 +63,16 @@ class SimpleCar(Agent):
             next_direction: La siguiente dirección a la que moverse.
         Returns:
             x_new, y_new: La nueva posición del coche.
-        '''
+        """
 
         disp = RawDirections[next_direction].value
         x_new, y_new = self.pos[0] + disp[0], self.pos[1] + disp[1]
         return x_new, y_new
 
     def random_move(self):
-        '''
+        """
         Mover el coche respetando las direcciones de las celdas de la carretera en la ruta, otros coches y semáforos para llegar al destino.
-        '''
+        """
 
         # Obtener direcciones permitidas desde la posición actual
         possible_directions = self.model.valid_moves.get(self.pos, [])
@@ -82,7 +89,8 @@ class SimpleCar(Agent):
                 valid_moves.append(next_position)
             else:
                 # Verificar si hay semáforo en rojo en la próxima posición
-                cell_contents = self.model.grid.get_cell_list_contents([next_position])
+                cell_contents = self.model.grid.get_cell_list_contents([
+                                                                       next_position])
                 if any(isinstance(agent, TrafficLight) and agent.state == "rojo" for agent in cell_contents):
                     continue  # Evitar moverse si el semáforo está en rojo
 
@@ -95,15 +103,28 @@ class SimpleCar(Agent):
             new_position = self.random.choice(valid_moves)
             self.model.grid.move_agent(self, new_position)
 
-    def build_graph(self, valid_moves):
-        '''
+    def update_direction(self):
+        """
+        Obtener la dirección sobre la que se encuentra el vehículo
+        """
+
+        cell_contents = self.model.grid.get_cell_list_contents([self.pos])
+        for agent in cell_contents:
+            if isinstance(agent, Parking) or isinstance(agent, Road):
+                self.direction = agent.direction
+
+        # print("Dirección", self.direction, ", Pos: ", self.pos)
+
+    @staticmethod
+    def build_graph(valid_moves):
+        """
         Construir un grafo dirigido de la ciudad basado en las direcciones válidas de movimiento. Usa la librería NetworkX.
         NetworkX es un paquete de Python para la creación, manipulación y estudio de la estructura, dinámica y funciones de redes complejas.
         Args:
             valid_moves (dict): Un diccionario que mapea las posiciones de la cuadrícula a las direcciones válidas.
         Returns:
             G: Un grafo de la ciudad con las conexiones de las direcciones válidas.
-        '''
+        """
 
         G = nx.DiGraph()
         for position, directions in valid_moves.items():
@@ -114,14 +135,15 @@ class SimpleCar(Agent):
                     G.add_edge(position, neighbor)
         return G
 
-    def get_directions_from_path(self, route):
-        '''
+    @staticmethod
+    def get_directions_from_path(route):
+        """
         Obtener las direcciones de la ruta de un coche basado en los nodos de la ruta.
         Args:
             route (list): Una lista de nodos que representan la ruta del coche.
         Returns:
             directions (list): Una lista de direcciones que el coche debe seguir para llegar a su destino.
-        '''
+        """
 
         directions = []
         for i in range(len(route) - 1):
@@ -137,9 +159,9 @@ class SimpleCar(Agent):
         return directions
 
     def intelligent_move(self):
-        '''
+        """
         Movimeinto inteligente del coche basado en la dirección dada, ruta obtenida de la mejor ruta calculada.
-        '''
+        """
         if not self.route or len(self.route) < 2:
             return  # No hay ruta válida
 
@@ -150,10 +172,12 @@ class SimpleCar(Agent):
         cell_contents = self.model.grid.get_cell_list_contents([next_position])
 
         # Verificar si hay un semáforo en rojo
-        traffic_light = any(isinstance(agent, TrafficLight) and agent.state == "red" for agent in cell_contents)
+        traffic_light = any(isinstance(agent, TrafficLight)
+                            and agent.state == "red" for agent in cell_contents)
 
         # Verificar si hay otro coche en la siguiente posición
-        other_car = any(isinstance(agent, SimpleCar) for agent in cell_contents)
+        other_car = any(isinstance(agent, SimpleCar)
+                        for agent in cell_contents)
 
         if not traffic_light and not other_car:
             # Mover al siguiente nodo en la ruta
@@ -162,11 +186,15 @@ class SimpleCar(Agent):
         elif other_car or self.destination != self.pos:
             # Recalcular la ruta si hay otro coche en la siguiente posición
             try:
-                self.route = nx.shortest_path(self.graph, self.pos, self.destination)
-                self.route_directions = self.get_directions_from_path(self.route)
+                self.route = nx.shortest_path(
+                    self.graph, self.pos, self.destination)
+                self.route_directions = self.get_directions_from_path(
+                    self.route)
             except nx.NetworkXNoPath:
                 self.route = None
-                print(f"No hay camino entre {self.pos} y {self.destination}")
+                pos_number = find_parking_number(self.pos, parking_spots)
+                dest_number = find_parking_number(self.destination, parking_spots)
+                print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
             pass
 
         elif other_car and self.destination == next_position:
@@ -181,10 +209,11 @@ class SimpleCar(Agent):
             pass
 
     def step(self):
-        '''
+        """
         Mientras el coche no haya llegado a su destino, seguirá moviéndose.
-        '''
+        """
 
+        self.update_direction()
         if self.pos == self.destination:
             # print(f"Car {self.unique_id} has reached its destination.")
             return
@@ -195,72 +224,73 @@ class SimpleCar(Agent):
 
 
 class Building(Agent):
-    '''
+    """
     Agente que representa un edificio en la ciudad. Renderiza un edificio en la cuadrícula.
-    '''
+    """
 
     def __init__(self, unique_id, model):
-        '''
+        """
         Crear un nuevo agente de edificio con un ID único y referencia al modelo.
-        '''
+        """
 
         super().__init__(unique_id, model)
 
     def step(self):
-        '''
+        """
         El agente Building no hace nada, es un agente estático para fines de visualización.
-        '''
+        """
 
         pass
 
 
 class Roundabout(Agent):
-    '''
+    """
     Agente que representa una glorieta en la ciudad. Renderiza una glorieta en la cuadrícula.
-    '''
+    """
 
     def __init__(self, unique_id, model):
-        '''
+        """
         Crear un nuevo agente de glorieta con un ID único y referencia al modelo.
-        '''
+        """
 
         super().__init__(unique_id, model)
 
     def step(self):
-        '''
+        """
         El agente Roundabout no hace nada, es un agente estático para fines de visualización.
-        '''
+        """
 
         pass
 
 
 class TrafficLight(Agent):
-    '''
+    """
     Agente que representa un semáforo en la ciudad. Renderiza un semáforo en la cuadrícula.
-    '''
+    """
 
-    def __init__(self, unique_id, model, direction, initial_state="green", timer=5):
-        '''
+    def __init__(self, unique_id, model, num, direction, initial_state="green", timer=5):
+        """
         Crear un nuevo agente de semáforo con un ID único, referencia al modelo, dirección, estado inicial y temporizador.
-        '''
+        """
 
         super().__init__(unique_id, model)
+        self.id = num + 1
         self.state = initial_state
         self.direction = direction
         self.timer = timer
         self.counter = 0
 
     def toggle_state(self):
-        '''
+        """
         Alternar el estado del semáforo.
-        '''
+        """
 
         self.state = "red" if self.state == "green" else "green"
 
     def count_waiting_cars(self):
-        '''
+        """
         Contar el número de coches esperando en la intersección del semáforo.
-        '''
+        """
 
         waiting_cars = 0
         neighbors = self.model.grid.get_neighbors(
@@ -271,9 +301,9 @@ class TrafficLight(Agent):
         return waiting_cars
 
     def step(self):
-        '''
+        """
         El agente TrafficLight no hace nada, es un agente estático para fines de visualización.
-        '''
+        """
 
         self.counter += 1
         if self.counter >= self.timer:
@@ -281,7 +311,8 @@ class TrafficLight(Agent):
             self.counter = 0
 
         # Comunicación con el semáforo más cercano
-        neighbors = self.model.grid.get_neighbors(self.pos, moore=False, include_center=False)
+        neighbors = self.model.grid.get_neighbors(
+            self.pos, moore=False, include_center=False)
         for neighbor in neighbors:
             if isinstance(neighbor, TrafficLight) and neighbor.direction == self.direction:
                 my_waiting_cars = self.count_waiting_cars()
@@ -296,57 +327,57 @@ class TrafficLight(Agent):
 
 
 class Road(Agent):
-    '''
+    """
     Agente que representa una carretera en la ciudad. Renderiza una carretera en la cuadrícula.
-    '''
+    """
 
     def __init__(self, unique_id, model, direction):
-        '''
+        """
         Crear un nuevo agente de carretera con un ID único, referencia al modelo y dirección.
-        '''
+        """
 
         super().__init__(unique_id, model)
         self.direction = direction
 
     def step(self):
-        '''
+        """
         El agente Road no hace nada, es un agente estático para fines de visualización.
-        '''
+        """
 
         pass
 
 
 class Parking(Agent):
-    '''
+    """
     Agente que representa un estacionamiento en la ciudad. Renderiza un estacionamiento en la cuadrícula.
-    '''
+    """
 
     def __init__(self, unique_id, model, direction, parking_id):
-        '''
+        """
         Crear un nuevo agente de estacionamiento con un ID único, referencia al modelo, dirección y ID de estacionamiento
-        '''
+        """
 
         super().__init__(unique_id, model)
         self.parking_id = parking_id
         self.direction = direction
 
     def step(self):
-        '''
+        """
         El agente Parking no hace nada, es un agente estático para fines de visualización.
-        '''
+        """
 
         pass
 
 
 def get_direction(Agent, direction):
-    '''
+    """
     Calcular la nueva posición de un agente basado en una dirección dada.
     Args:
         Agent: El agente que se moverá.
         direction: La dirección en la que moverse.
     Returns:
         x, y: Las nuevas coordenadas del agente.
-    '''
+    """
 
     x, y = Agent.pos
     if direction in Directions._member_names_:
