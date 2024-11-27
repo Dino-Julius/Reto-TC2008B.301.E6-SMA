@@ -41,7 +41,7 @@ class SimpleCar(Agent):
 
         # Inicializar el grafo de la ciudad y calcular la mejor ruta
         self.graph = self.build_graph(self.model.valid_moves)
-        self.direction = "XD"
+        self.now_direction = "XD"
         self.update_direction()
 
         try:
@@ -50,6 +50,7 @@ class SimpleCar(Agent):
             self.route_directions = self.get_directions_from_path(self.route)
         except nx.NetworkXNoPath:
             self.route = None
+            self.route_directions = None
             pos_number = find_parking_number(self.pos, parking_spots)
             dest_number = find_parking_number(self.destination, parking_spots)
             print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
@@ -111,7 +112,7 @@ class SimpleCar(Agent):
         cell_contents = self.model.grid.get_cell_list_contents([self.pos])
         for agent in cell_contents:
             if isinstance(agent, Parking) or isinstance(agent, Road):
-                self.direction = agent.direction
+                self.now_direction = agent.direction
 
         # print("Dirección", self.direction, ", Pos: ", self.pos)
 
@@ -208,12 +209,24 @@ class SimpleCar(Agent):
             # print(f"Car {self.unique_id} is waiting at {self.pos}")
             pass
 
+    index = 0
+    directions = []
     def step(self):
         """
         Mientras el coche no haya llegado a su destino, seguirá moviéndose.
         """
 
-        self.update_direction()
+        # self.update_direction()
+        if self.route_directions:
+            self.now_direction = self.route_directions[SimpleCar.index]
+        else:
+            self.update_direction()
+
+        SimpleCar.directions.append(self.now_direction)
+        print(SimpleCar.directions)
+        print(self.route_directions)
+        # print(self.route_directions[SimpleCar.index])
+        SimpleCar.index += 1
         if self.pos == self.destination:
             # print(f"Car {self.unique_id} has reached its destination.")
             return
@@ -221,6 +234,33 @@ class SimpleCar(Agent):
             # print(f"Car {self.unique_id} is moving, now in {self.pos}")
             # self.random_move()
             self.intelligent_move()
+
+
+class Pedestrian(Agent):
+    """
+    Agente que representa a un peatón simple en la ciudad. Renderiza al peatón en la cuadrícula.
+    """
+    ...
+
+    def __init__(self, unique_id, model):
+        """
+        Crear un nuevo agente de coche con un ID único, referencia al modelo, posición de inicio y posición de destino.
+        """
+
+        super().__init__(unique_id, model)
+
+    def move():
+        """
+        Función de movimiento aleatorio del peatón,
+        """
+        ...
+
+    def step(self):
+        """
+        Mientras el coche no haya llegado a su destino, seguirá moviéndose.
+        """
+
+        self.move()
 
 
 class Building(Agent):

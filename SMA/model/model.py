@@ -211,7 +211,7 @@ class MovilityModel(Model):
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
                 unity_x, unity_z = unity_pos(agent.start[0], agent.start[1])
-                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.direction}})
+                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.now_direction}})
             if isinstance(agent, TrafficLight):
                 result["TrafficLights"].append(({"id": agent.id, "pos": agent.pos, "state": agent.state}))
                 
@@ -226,7 +226,7 @@ class MovilityModel(Model):
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
                 unity_x, unity_z = unity_pos(agent.pos[0], agent.pos[1])
-                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.direction}})
+                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.now_direction}})
             if isinstance(agent, TrafficLight):
                 result["TrafficLights"].append(({"id": agent.id, "pos": agent.pos, "state": agent.state}))
                 
