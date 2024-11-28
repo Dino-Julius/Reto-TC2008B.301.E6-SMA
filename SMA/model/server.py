@@ -80,7 +80,6 @@ def agents_portrayal(agent: Agent):
     - Building: Se representa con un rectángulo azul.
     - Roundabout: Se representa con un rectángulo marrón.
     """
-
     if agent is None:
         return
 

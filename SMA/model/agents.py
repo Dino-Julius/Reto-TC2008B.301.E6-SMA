@@ -26,12 +26,10 @@ class SimpleCar(Agent):
     """
     Agente que representa un coche simple en la ciudad. Renderiza un coche en la cuadrícula.
     """
-
     def __init__(self, unique_id, model, num, start, destination):
         """
         Crear un nuevo agente de coche con un ID único, referencia al modelo, posición de inicio y posición de destino.
         """
-
         super().__init__(unique_id, model)
         self.id = num + 1
         self.start = start
@@ -65,7 +63,6 @@ class SimpleCar(Agent):
         Returns:
             x_new, y_new: La nueva posición del coche.
         """
-
         disp = RawDirections[next_direction].value
         x_new, y_new = self.pos[0] + disp[0], self.pos[1] + disp[1]
         return x_new, y_new
@@ -74,7 +71,6 @@ class SimpleCar(Agent):
         """
         Mover el coche respetando las direcciones de las celdas de la carretera en la ruta, otros coches y semáforos para llegar al destino.
         """
-
         # Obtener direcciones permitidas desde la posición actual
         possible_directions = self.model.valid_moves.get(self.pos, [])
         # print(f'Possible directions: {possible_directions}')
@@ -107,7 +103,6 @@ class SimpleCar(Agent):
         """
         Obtener la dirección sobre la que se encuentra el vehículo
         """
-
         cell_contents = self.model.grid.get_cell_list_contents([self.pos])
         for agent in cell_contents:
             if isinstance(agent, Parking) or isinstance(agent, Road):
@@ -125,7 +120,6 @@ class SimpleCar(Agent):
         Returns:
             G: Un grafo de la ciudad con las conexiones de las direcciones válidas.
         """
-
         G = nx.DiGraph()
         for position, directions in valid_moves.items():
             for direction in directions:
@@ -144,7 +138,6 @@ class SimpleCar(Agent):
         Returns:
             directions (list): Una lista de direcciones que el coche debe seguir para llegar a su destino.
         """
-
         directions = []
         for i in range(len(route) - 1):
             current = route[i]
@@ -187,6 +180,7 @@ class SimpleCar(Agent):
             try:
                 self.route = nx.shortest_path(self.graph, self.pos, self.destination)
                 self.route_directions = self.get_directions_from_path(self.route)
+                print(f"Ruta recalculada desde {self.pos} hacia {self.destination}")
             except nx.NetworkXNoPath:
                 self.route = None
                 pos_number = find_parking_number(self.pos, parking_spots)
@@ -209,7 +203,6 @@ class SimpleCar(Agent):
         """
         Mientras el coche no haya llegado a su destino, seguirá moviéndose.
         """
-
         self.update_direction()
         if self.pos == self.destination:
             # print(f"Car {self.unique_id} has reached its destination.")
@@ -224,12 +217,12 @@ class Pedestrian(Agent):
     """
     Agente que representa un peatón en la ciudad. Renderiza un peatón en la cuadrícula.
     """
-
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, num):
         """
         Crear un nuevo agente de peatón con un ID único y referencia al modelo.
         """
         super().__init__(unique_id, model)
+        self.id = num + 1
 
     def random_move(self):
         """
@@ -260,19 +253,16 @@ class Building(Agent):
     """
     Agente que representa un edificio en la ciudad. Renderiza un edificio en la cuadrícula.
     """
-
     def __init__(self, unique_id, model):
         """
         Crear un nuevo agente de edificio con un ID único y referencia al modelo.
         """
-
         super().__init__(unique_id, model)
 
     def step(self):
         """
         El agente Building no hace nada, es un agente estático para fines de visualización.
         """
-
         pass
 
 
@@ -280,19 +270,16 @@ class Roundabout(Agent):
     """
     Agente que representa una glorieta en la ciudad. Renderiza una glorieta en la cuadrícula.
     """
-
     def __init__(self, unique_id, model):
         """
         Crear un nuevo agente de glorieta con un ID único y referencia al modelo.
         """
-
         super().__init__(unique_id, model)
 
     def step(self):
         """
         El agente Roundabout no hace nada, es un agente estático para fines de visualización.
         """
-
         pass
 
 
@@ -300,12 +287,10 @@ class TrafficLight(Agent):
     """
     Agente que representa un semáforo en la ciudad. Renderiza un semáforo en la cuadrícula.
     """
-
     def __init__(self, unique_id, model, num, direction, initial_state="green", timer=5):
         """
         Crear un nuevo agente de semáforo con un ID único, referencia al modelo, dirección, estado inicial y temporizador.
         """
-
         super().__init__(unique_id, model)
         self.id = num + 1
         self.state = initial_state
@@ -317,14 +302,12 @@ class TrafficLight(Agent):
         """
         Alternar el estado del semáforo.
         """
-
         self.state = "red" if self.state == "green" else "green"
 
     def count_waiting_cars(self):
         """
         Contar el número de coches esperando en la intersección del semáforo.
         """
-
         waiting_cars = 0
         neighbors = self.model.grid.get_neighbors(self.pos, moore=False, include_center=False)
         for neighbor in neighbors:
@@ -336,7 +319,6 @@ class TrafficLight(Agent):
         """
         El agente TrafficLight no hace nada, es un agente estático para fines de visualización.
         """
-
         self.counter += 1
         if self.counter >= self.timer:
             self.toggle_state()
@@ -361,12 +343,10 @@ class Road(Agent):
     """
     Agente que representa una carretera en la ciudad. Renderiza una carretera en la cuadrícula.
     """
-
     def __init__(self, unique_id, model, direction):
         """
         Crear un nuevo agente de carretera con un ID único, referencia al modelo y dirección.
         """
-
         super().__init__(unique_id, model)
         self.direction = direction
 
@@ -374,7 +354,6 @@ class Road(Agent):
         """
         El agente Road no hace nada, es un agente estático para fines de visualización.
         """
-
         pass
 
 
@@ -382,12 +361,10 @@ class Parking(Agent):
     """
     Agente que representa un estacionamiento en la ciudad. Renderiza un estacionamiento en la cuadrícula.
     """
-
     def __init__(self, unique_id, model, direction, parking_id):
         """
         Crear un nuevo agente de estacionamiento con un ID único, referencia al modelo, dirección y ID de estacionamiento
         """
-
         super().__init__(unique_id, model)
         self.parking_id = parking_id
         self.direction = direction
@@ -396,7 +373,6 @@ class Parking(Agent):
         """
         El agente Parking no hace nada, es un agente estático para fines de visualización.
         """
-
         pass
 
 
@@ -409,7 +385,6 @@ def get_direction(Agent, direction):
     Returns:
         x, y: Las nuevas coordenadas del agente.
     """
-
     x, y = Agent.pos
     if direction in Directions._member_names_:
         dx, dy = Directions[direction].value

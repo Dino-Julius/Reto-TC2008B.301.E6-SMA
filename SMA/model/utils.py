@@ -14,7 +14,6 @@ class Directions(Enum):
     """
     Direcciones con un desplazamiento que funciona en un sistema de coordenadas natural
     """
-
     UP = (0, 1)
     LF = (-1, 0)
     RH = (1, 0)
@@ -25,7 +24,6 @@ class RawDirections(Enum):
     """
     El desplazamiento ya está ajustado para funcionar con una matriz de la forma [fila][columna]
     """
-
     UP = (-1, 0)
     LF = (0, -1)
     RH = (0, 1)
@@ -40,7 +38,6 @@ def parse_environment(environment: list):
     Returns:
         tuple: Una tupla que contiene listas de datos de carreteras, edificios, estacionamientos, semáforos y rotondas.
     """
-
     road_data = []
     building_data = []
     parking_data = []
@@ -83,7 +80,6 @@ def find_parking_spots(parking_spots: dict):
     Returns:
         list: Una lista de datos de espacios de estacionamiento con ID, filas y columnas.
     """
-
     parking_data = []
     for spot_id, (row, col) in parking_spots.items():
         data = {"id": spot_id, "x": row, "y": col}
@@ -94,10 +90,9 @@ def find_parking_spots(parking_spots: dict):
 def unity_pos(mesa_x: int, mesa_y: int):
     """
     Convierte las posiciones de mesa en posiciones válidas según la organiación del plano en el visualizador 3D en Unity.
-    En el visualizador, la ciudad 3D está sobre los ejes XZ, 
-    siedo el punto (0,0,0) la esquina inferior izquierda y el punto (240, 0, -240) la esquina superior derecha.
+    En el visualizador, la ciudad 3D está sobre los ejes XZ, siendo el punto (0,0,0) la esquina inferior izquierda y el
+    punto (240, 0, -240) la esquina superior derecha.
     """
-
     return (mesa_y * 10 + 5), ((mesa_x * 10 + 5) * -1)
 
 
@@ -105,7 +100,6 @@ def find_parking_number(coordinates, parking_spots):
     """
     Buscar el número de estacionamiento correspondiente a las coordenadas
     """
-    
     for number, coords in parking_spots.items():
         if coords == coordinates:
             return number

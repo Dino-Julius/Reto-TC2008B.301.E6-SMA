@@ -44,12 +44,10 @@ class MovilityModel(Model):
         step: Avanza el modelo en un paso.
         get_agent_messages: Devuelve los mensajes de los agentes.
     """
-
     def __init__(self, environment, valid_moves, simplecar_agents_limit, pedestrian_agents_limit=5):
         """
         Inicializa un nuevo modelo de movilidad urbana con el entorno, movimientos válidos y límite de agentes de coche simple.
         """
-
         super().__init__()
         self.environment = environment
         self.width = len(environment)
@@ -161,11 +159,19 @@ class MovilityModel(Model):
 
         # Place the cars in the grid
         for i in range(simplecar_agents_limit):
+            # Salidas peligrosas: 3, 7, 13
             start_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            while start_index == 3 or start_index == 7 or start_index == 13:
+                start_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
             destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
             while destination_index == start_index:
                 destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            # start_index = 1
+            # destination_index = 8
 
             start_parking = self.parsed_parking_spots[start_index - 1]
             destination_parking = self.parsed_parking_spots[destination_index - 1]
@@ -185,7 +191,7 @@ class MovilityModel(Model):
         for i in range(pedestrian_agents_limit):
             if bl_positions:
                 pos = self.random.choice(bl_positions)
-                pedestrian_agent = Pedestrian(self.next_id(), self)
+                pedestrian_agent = Pedestrian(self.next_id(), self, i)
                 self.schedule.add(pedestrian_agent)
                 self.grid.place_agent(pedestrian_agent, pos)
 
@@ -204,7 +210,6 @@ class MovilityModel(Model):
         """
         Avanzar el modelo en un paso.
         """
-
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -212,14 +217,12 @@ class MovilityModel(Model):
         """
         Devuelve los mensajes de los agentes.
         """
-
         return "<br>".join(self.message)
 
     def start_data(self):
         """
         Obitene la instancia inicial de cada agente importante del modelo
         """
-
         result = {"Cars": [], "TrafficLights": [], "Pedestrians": []}
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
@@ -237,7 +240,6 @@ class MovilityModel(Model):
         """
         Obtiene la información importante de cada agente para serializarla y enviarla al servidor.
         """
-
         result = {"Cars": [], "TrafficLights": [], "Pedestrians": []}
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
@@ -256,18 +258,15 @@ class AgentMessageElement(mesa.visualization.TextElement):
     """
     Clase para visualizar mensajes de los agentes en la interfaz de Mesa.
     """
-
     def __init__(self):
         """
         Constructor de la clase.
         """
-
         super().__init__()
 
     def render(self, model):
         """
         Renderiza los mensajes de los agentes en la interfaz de Mesa.
         """
-
         # Recupera y devuelve los mensajes de los agentes
         return model.get_agent_messages()
