@@ -102,11 +102,10 @@ def agents_portrayal(agent: Agent):
 
     elif isinstance(agent, Pedestrian):
         portrayal = {
-            "Shape": "circle",
+            "Shape": "assets/pedestrian.png",
             "Filled": "true",
             "Layer": 1,
-            "r": 0.5,
-            "Color": "pink"
+            "scale": 1,
         }
 
     elif isinstance(agent, TrafficLight):
