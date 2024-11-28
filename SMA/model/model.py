@@ -14,6 +14,8 @@ from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 from mesa.time import RandomActivation
 
+import networkx as nx
+
 from model.agents import SimpleCar, Pedestrian, Building, Roundabout, TrafficLight, Road, Parking
 from model.environment import parking_spots
 from model.utils import parse_environment, find_parking_spots, unity_pos
@@ -158,6 +160,7 @@ class MovilityModel(Model):
             self.grid.place_agent(rd_agent, (roundabout["x"], roundabout["y"]))
 
         # Place the cars in the grid
+        '''
         for i in range(simplecar_agents_limit):
             # Salidas peligrosas: 3, 7, 13
             start_index = self.random.choice(range(len(self.parsed_parking_spots)))
@@ -183,7 +186,43 @@ class MovilityModel(Model):
 
             self.schedule.add(simpleCar_Agent)
             self.message.append(f"Vehículo {simpleCar_Agent.id} inicia en {start_index} y va a {destination_index}")
+        '''
+        # Conjunto de lugares utilizados
+        used_spots = set()
 
+        for i in range(simplecar_agents_limit):
+            # Salidas peligrosas: 3, 7, 13
+            dangerous_exits = [2, 6, 12]  # Índices peligrosos (restados 1)
+
+            start_index = i
+
+            # Asegurarse de que el índice de inicio no sea peligroso y no esté ya utilizado
+            while start_index in dangerous_exits or start_index in used_spots:
+                start_index += 1
+
+            # Asegurarse de que el índice de inicio no exceda el número de estacionamientos disponibles
+            if start_index >= len(self.parsed_parking_spots):
+                break
+
+            used_spots.add(start_index)  # Marcar el spot como utilizado
+
+            destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            while destination_index == start_index:
+                destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            start_parking = self.parsed_parking_spots[start_index]
+            destination_parking = self.parsed_parking_spots[destination_index]
+
+            start_coords = (start_parking["x"], start_parking["y"])
+            destination_coords = (destination_parking["x"], destination_parking["y"])
+
+            car_agent = SimpleCar(self.next_id(), self, i, start_coords, destination_coords)
+
+            self.schedule.add(car_agent)
+            self.message.append(f"Vehículo {car_agent.id} inicia en {start_index + 1} y va a {destination_index + 1}")
+
+        
         # Obtener todas las posiciones de celdas BL
         bl_positions = [(x, y) for x in range(self.width) for y in range(self.height) if any(isinstance(agent, Building) for agent in self.grid.get_cell_list_contents((x, y)))]
         
@@ -211,7 +250,38 @@ class MovilityModel(Model):
         Avanzar el modelo en un paso.
         """
         self.schedule.step()
+        self.step_count += 1
         self.datacollector.collect(self)
+
+        # Verificar si todos los coches han llegado a su destino
+        all_arrived = all(agent.pos == agent.destination for agent in self.schedule.agents if isinstance(agent, SimpleCar))
+
+        if all_arrived:
+            if self.step_count >= 5:  # Esperar 5 pasos
+                for agent in self.schedule.agents:
+                    if isinstance(agent, SimpleCar):
+                        agent.start = agent.destination  # Cambiar el start al destino
+
+                        destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+                        while destination_index == agent.start:
+                            destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+                        
+                        destination_parking = self.parsed_parking_spots[destination_index]
+                        destination_coords = (destination_parking["x"], destination_parking["y"])
+
+                        agent.destination = destination_coords  # Cambiar el destino
+                        
+                        # print(f"Vehículo {agent.id} inicia en {agent.start} y va a {destination_index}")
+                        # Buscar el id del coche dado el punto
+                        start_index = [index for index, parking in enumerate(self.parsed_parking_spots) if parking["x"] == agent.start[0] and parking["y"] == agent.start[1]][0] + 1    
+
+                        # Actualizar el mensaje
+                        self.message[agent.id - 1] = (f"Vehículo {agent.id} inicia en {start_index + 1} y va a {destination_index + 1}")
+                        agent.determine_best_path()
+
+                print(f"Todos los coches han llegado a su destino en el tiempo {self.step_count}. Reiniciando...")
+                self.step_count = 0  # Reiniciar el contador de pasos
 
     def get_agent_messages(self):
         """

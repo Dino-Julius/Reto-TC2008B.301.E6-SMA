@@ -43,15 +43,22 @@ class SimpleCar(Agent):
         self.now_direction = "XD"
         self.update_direction()
 
+        self.determine_best_path()
+
+    def determine_best_path(self):
+        """
+        Obtiene la mejor nueva ruta desde la posición actual hasta la posición de destino.
+        """
         try:
             self.route = nx.shortest_path(self.graph, self.pos, self.destination)
             self.route_directions = self.get_directions_from_path(self.route)
+            # print(f"Ruta recalculada desde {self.pos} hacia {self.destination}")
         except nx.NetworkXNoPath:
             self.route = None
-            self.route_directions = None
-            pos_number = find_parking_number(self.pos, parking_spots)
-            dest_number = find_parking_number(self.destination, parking_spots)
-            print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
+            # pos_number = find_parking_number(self.pos, parking_spots)
+            # dest_number = find_parking_number(self.destination, parking_spots)
+            # print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
+        pass
 
     def apply_movement(self, next_direction: str):
         """
@@ -170,23 +177,13 @@ class SimpleCar(Agent):
         # Verificar si hay otro coche en la siguiente posición
         other_car = any(isinstance(agent, SimpleCar) for agent in cell_contents)
 
-        # ! No verificar otro coche en la siguiente celda 
-        if not traffic_light:
+        if not traffic_light and not other_car:
             # Mover al siguiente nodo en la ruta
             self.model.grid.move_agent(self, next_position)
             self.route.pop(0)  # Actualizar la ruta
-        elif self.destination != self.pos:
-            # Recalcular la ruta si hay otro coche en la siguiente posición
-            try:
-                self.route = nx.shortest_path(self.graph, self.pos, self.destination)
-                self.route_directions = self.get_directions_from_path(self.route)
-                print(f"Ruta recalculada desde {self.pos} hacia {self.destination}")
-            except nx.NetworkXNoPath:
-                self.route = None
-                pos_number = find_parking_number(self.pos, parking_spots)
-                dest_number = find_parking_number(self.destination, parking_spots)
-                print(f"No hay camino entre {pos_number}: {self.pos} y {dest_number}: {self.destination}")
-            pass
+        
+        elif other_car or self.destination != self.pos:
+            self.determine_best_path()
 
         elif other_car and self.destination == next_position:
             # Si el coche está en la posición de destino, pero hay otro coche, de todos formas ingresar al estacionamiento

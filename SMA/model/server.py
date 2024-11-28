@@ -86,7 +86,7 @@ def agents_portrayal(agent: Agent):
     portrayal = {
         "Shape": "circle",
         "Filled": "true",
-        "Layer": "0",
+        "Layer": 0,
         "r": 0.5,
     }
 
@@ -94,10 +94,11 @@ def agents_portrayal(agent: Agent):
         portrayal.update({
             "Shape": "assets/car.png",
             "Filled": "true",
-            "Layer": 1,
-            "scale": 1,
+            "Layer": 0,
+            "w": 1.0,
+            "h": 1.0,
             "text": str(agent.id),
-            "text_color": "Black"
+            # "text_color": "Black"
         })
 
     elif isinstance(agent, Pedestrian):
@@ -179,8 +180,8 @@ agent_message_element = AgentMessageElement()
 model_kwargs = {
     "environment": CITY,
     "valid_moves": street_directions,
-    "simplecar_agents_limit": Slider("Simple Car Agent Limit", value=5, min_value=1, max_value=1000, step=5),
-    "pedestrian_agents_limit": Slider("Pedestrian Agent Limit", value=5, min_value=1, max_value=1000, step=5),
+    "simplecar_agents_limit": Slider("Simple Car Agent Limit", value=14, min_value=1, max_value=14, step=2),
+    "pedestrian_agents_limit": Slider("Pedestrian Agent Limit", value=25, min_value=1, max_value=600, step=5),
 }
 
 # Inicializa el servidor
