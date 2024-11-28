@@ -185,11 +185,11 @@ class SimpleCar(Agent):
         elif other_car or self.destination != self.pos:
             self.determine_best_path()
 
-        elif other_car and self.destination == next_position:
-            # Si el coche está en la posición de destino, pero hay otro coche, de todos formas ingresar al estacionamiento
-            self.model.grid.move_agent(self, next_position)
-            self.route.pop(0)
-            pass
+        # elif other_car and self.destination == next_position:
+        #     # Si el coche está en la posición de destino, pero hay otro coche, de todos formas ingresar al estacionamiento
+        #     self.model.grid.move_agent(self, next_position)
+        #     self.route.pop(0)
+        #     pass
 
         else:
             # Esperar si hay un semáforo en rojo

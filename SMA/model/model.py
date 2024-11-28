@@ -188,28 +188,32 @@ class MovilityModel(Model):
             self.message.append(f"Vehículo {simpleCar_Agent.id} inicia en {start_index} y va a {destination_index}")
         '''
         # Conjunto de lugares utilizados
-        used_spots = set()
+        self.used_start_spots = set()
+        self.used_destination_spots = set()
+        # Salidas peligrosas: 3, 7, 13
+        self.dangerous_exits = [2, 6, 12]  # Índices peligrosos (restados 1)
 
         for i in range(simplecar_agents_limit):
-            # Salidas peligrosas: 3, 7, 13
-            dangerous_exits = [2, 6, 12]  # Índices peligrosos (restados 1)
 
             start_index = i
 
             # Asegurarse de que el índice de inicio no sea peligroso y no esté ya utilizado
-            while start_index in dangerous_exits or start_index in used_spots:
+            while start_index in self.dangerous_exits or start_index in self.used_start_spots:
                 start_index += 1
 
             # Asegurarse de que el índice de inicio no exceda el número de estacionamientos disponibles
             if start_index >= len(self.parsed_parking_spots):
                 break
 
-            used_spots.add(start_index)  # Marcar el spot como utilizado
+            self.used_start_spots.add(start_index)  # Marcar el spot como utilizado
 
             destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
-            while destination_index == start_index:
+            # Asegurarse de que el destino no sea el mismo que el inicio y no esté ya utilizado
+            while destination_index == start_index or destination_index in self.used_destination_spots or destination_index in self.dangerous_exits:
                 destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            self.used_destination_spots.add(destination_index)  # Marcar el destino como utilizado
 
             start_parking = self.parsed_parking_spots[start_index]
             destination_parking = self.parsed_parking_spots[destination_index]
@@ -257,6 +261,9 @@ class MovilityModel(Model):
         all_arrived = all(agent.pos == agent.destination for agent in self.schedule.agents if isinstance(agent, SimpleCar))
 
         if all_arrived:
+            # Reset de los destinos disponibles
+            self.used_destination_spots = set()
+            
             if self.step_count >= 5:  # Esperar 5 pasos
                 for agent in self.schedule.agents:
                     if isinstance(agent, SimpleCar):
@@ -264,8 +271,11 @@ class MovilityModel(Model):
 
                         destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
-                        while destination_index == agent.start:
+                        # Asegurarse de que el destino no sea el mismo que el inicio y no esté ya utilizado
+                        while destination_index == agent.start or destination_index in self.used_destination_spots or destination_index in self.dangerous_exits:
                             destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+                        self.used_destination_spots.add(destination_index)  # Marcar el destino como utilizado
                         
                         destination_parking = self.parsed_parking_spots[destination_index]
                         destination_coords = (destination_parking["x"], destination_parking["y"])
