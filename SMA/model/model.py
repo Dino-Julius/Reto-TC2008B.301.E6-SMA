@@ -160,11 +160,19 @@ class MovilityModel(Model):
 
         # Place the cars in the grid
         for i in range(simplecar_agents_limit):
+            # prohibidos: 3, 7, 13 de llegada
             start_index = self.random.choice(range(len(self.parsed_parking_spots)))
+
+            while start_index == 3 or start_index == 7 or start_index == 13:
+                start_index = self.random.choice(range(len(self.parsed_parking_spots)))
+            
             destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
             while destination_index == start_index:
                 destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
+            
+            # start_index = 1
+            # destination_index = 8
 
             start_parking = self.parsed_parking_spots[start_index - 1]
             destination_parking = self.parsed_parking_spots[destination_index - 1]

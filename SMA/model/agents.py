@@ -179,11 +179,12 @@ class SimpleCar(Agent):
         other_car = any(isinstance(agent, SimpleCar)
                         for agent in cell_contents)
 
-        if not traffic_light and not other_car:
+        # ! coches encimados
+        if not traffic_light:
             # Mover al siguiente nodo en la ruta
             self.model.grid.move_agent(self, next_position)
             self.route.pop(0)  # Actualizar la ruta
-        elif other_car or self.destination != self.pos:
+        elif self.destination != self.pos:
             # Recalcular la ruta si hay otro coche en la siguiente posición
             try:
                 self.route = nx.shortest_path(

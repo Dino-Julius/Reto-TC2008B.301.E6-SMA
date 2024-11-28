@@ -13,7 +13,7 @@ from model.model import MovilityModel
 
 app = Flask(__name__, static_url_path="")
 
-model = MovilityModel(CITY, street_directions, 5)
+model = MovilityModel(CITY, street_directions, 65)
 port = int(os.getenv("PORT", 8585))
 
 
