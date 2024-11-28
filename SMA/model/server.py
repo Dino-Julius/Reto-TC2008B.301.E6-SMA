@@ -17,14 +17,12 @@ Variables:
 """
 
 import mesa
-
 from mesa import Agent
-
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import Slider
 
-from model.agents import SimpleCar, Building, Roundabout, TrafficLight, Road, Parking
+from model.agents import SimpleCar, Pedestrian, Building, Roundabout, TrafficLight, Road, Parking
 from model.model import MovilityModel
 from model.environment import CITY, street_directions
 from model.utils import Directions
@@ -75,13 +73,13 @@ def agents_portrayal(agent: Agent):
 
     La representación visual varía según el tipo de agente:
     - SimpleCar: Se representa con una imagen de coche.
+    - Pedestrian: Se representa con un círculo de color rosa.
     - TrafficLight: Se representa con un rectángulo de color verde o rojo según su estado.
     - Road: Se representa con una flecha que indica la dirección de la carretera.
     - Parking: Se representa con un rectángulo amarillo.
     - Building: Se representa con un rectángulo azul.
     - Roundabout: Se representa con un rectángulo marrón.
     """
-
     if agent is None:
         return
 
@@ -101,6 +99,15 @@ def agents_portrayal(agent: Agent):
             "text": str(agent.id),
             "text_color": "Black"
         })
+
+    elif isinstance(agent, Pedestrian):
+        portrayal = {
+            "Shape": "circle",
+            "Filled": "true",
+            "Layer": 1,
+            "r": 0.5,
+            "Color": "pink"
+        }
 
     elif isinstance(agent, TrafficLight):
         portrayal = {
@@ -173,7 +180,8 @@ agent_message_element = AgentMessageElement()
 model_kwargs = {
     "environment": CITY,
     "valid_moves": street_directions,
-    "simplecar_agents_limit": Slider("Simple Car Agent Limit", value=1, min_value=2, max_value=100, step=2),
+    "simplecar_agents_limit": Slider("Simple Car Agent Limit", value=5, min_value=1, max_value=1000, step=5),
+    "pedestrian_agents_limit": Slider("Pedestrian Agent Limit", value=5, min_value=1, max_value=1000, step=5),
 }
 
 # Inicializa el servidor

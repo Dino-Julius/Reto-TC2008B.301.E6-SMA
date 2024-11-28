@@ -13,7 +13,7 @@ from model.model import MovilityModel
 
 app = Flask(__name__, static_url_path="")
 
-model = MovilityModel(CITY, street_directions, 65)
+model = MovilityModel(CITY, street_directions, 15, 20)
 port = int(os.getenv("PORT", 8585))
 
 
@@ -22,7 +22,6 @@ def start_model():
     """
     Obtiene los datos iniciales de los agentes que interactuan en el modelo.
     """
-    
     return jsonify(model.start_data())
 
 
@@ -31,7 +30,6 @@ def update_model():
     """
     Obtiene, por cada paso, los datos de los agentes que interactuan en el modelo.
     """
-
     model.step()
     return jsonify(model.update_data())
 

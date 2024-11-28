@@ -13,7 +13,8 @@ from mesa import Model
 from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 from mesa.time import RandomActivation
-from model.agents import SimpleCar, Building, Roundabout, TrafficLight, Road, Parking
+
+from model.agents import SimpleCar, Pedestrian, Building, Roundabout, TrafficLight, Road, Parking
 from model.environment import parking_spots
 from model.utils import parse_environment, find_parking_spots, unity_pos
 
@@ -32,6 +33,7 @@ class MovilityModel(Model):
 
     Agentes:
         SimpleCar: Representa un coche que se mueve desde un lugar de estacionamiento inicial hasta un lugar de estacionamiento de destino, respetando las direcciones de las carreteras, otros coches y semáforos.
+        Pedestrian: Representa un peatón que se mueve de un edificio a otro, evitando los coches y las carreteras.
         Building: Representa un edificio estático en la ciudad para fines de visualización.
         Roundabout: Representa una glorieta estática en la ciudad para fines de visualización.
         TrafficLight: Representa un semáforo que alterna entre los estados rojo y verde basado en un temporizador.
@@ -42,12 +44,10 @@ class MovilityModel(Model):
         step: Avanza el modelo en un paso.
         get_agent_messages: Devuelve los mensajes de los agentes.
     """
-
-    def __init__(self, environment, valid_moves, simplecar_agents_limit):
+    def __init__(self, environment, valid_moves, simplecar_agents_limit, pedestrian_agents_limit=5):
         """
         Inicializa un nuevo modelo de movilidad urbana con el entorno, movimientos válidos y límite de agentes de coche simple.
         """
-
         super().__init__()
         self.environment = environment
         self.width = len(environment)
@@ -88,8 +88,7 @@ class MovilityModel(Model):
             self.schedule.add(parking_agent)
             self.grid.place_agent(parking_agent, (parking["x"], parking["y"]))
             # Determine the exit direction of the parking slot based on the neighboring road cells.
-            neighbors = self.grid.get_neighborhood(
-                parking_agent.pos, moore=False, include_center=False)
+            neighbors = self.grid.get_neighborhood(parking_agent.pos, moore=False, include_center=False)
             for neighbor in neighbors:
                 cell_contents = self.grid.get_cell_list_contents([neighbor])
                 for agent in cell_contents:
@@ -160,17 +159,17 @@ class MovilityModel(Model):
 
         # Place the cars in the grid
         for i in range(simplecar_agents_limit):
-            # prohibidos: 3, 7, 13 de llegada
+            # Salidas peligrosas: 3, 7, 13
             start_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
             while start_index == 3 or start_index == 7 or start_index == 13:
                 start_index = self.random.choice(range(len(self.parsed_parking_spots)))
-            
+
             destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
 
             while destination_index == start_index:
                 destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
-            
+
             # start_index = 1
             # destination_index = 8
 
@@ -184,6 +183,18 @@ class MovilityModel(Model):
 
             self.schedule.add(simpleCar_Agent)
             self.message.append(f"Vehículo {simpleCar_Agent.id} inicia en {start_index} y va a {destination_index}")
+
+        # Obtener todas las posiciones de celdas BL
+        bl_positions = [(x, y) for x in range(self.width) for y in range(self.height) if any(isinstance(agent, Building) for agent in self.grid.get_cell_list_contents((x, y)))]
+        
+        # Place the pedestrians in the grid
+        for i in range(pedestrian_agents_limit):
+            if bl_positions:
+                pos = self.random.choice(bl_positions)
+                pedestrian_agent = Pedestrian(self.next_id(), self, i)
+                self.schedule.add(pedestrian_agent)
+                self.grid.place_agent(pedestrian_agent, pos)
+
 
         # Agregar al datacollector
         self.datacollector = DataCollector(
@@ -199,7 +210,6 @@ class MovilityModel(Model):
         """
         Avanzar el modelo en un paso.
         """
-
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -207,21 +217,22 @@ class MovilityModel(Model):
         """
         Devuelve los mensajes de los agentes.
         """
-
         return "<br>".join(self.message)
 
     def start_data(self):
         """
         Obitene la instancia inicial de cada agente importante del modelo
         """
-
-        result = {"Cars": [], "TrafficLights": []}
+        result = {"Cars": [], "TrafficLights": [], "Pedestrians": []}
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
                 unity_x, unity_z = unity_pos(agent.start[0], agent.start[1])
-                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.direction}})
+                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.now_direction}})
             if isinstance(agent, TrafficLight):
                 result["TrafficLights"].append(({"id": agent.id, "pos": agent.pos, "state": agent.state}))
+            if isinstance(agent, Pedestrian):
+                unity_x, unity_z = unity_pos(agent.pos[0], agent.pos[1])
+                result["Pedestrians"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z}})
                 
         return result
 
@@ -229,14 +240,16 @@ class MovilityModel(Model):
         """
         Obtiene la información importante de cada agente para serializarla y enviarla al servidor.
         """
-
-        result = {"Cars": [], "TrafficLights": []}
+        result = {"Cars": [], "TrafficLights": [], "Pedestrians": []}
         for agent in self.agents:
             if isinstance(agent, SimpleCar):
                 unity_x, unity_z = unity_pos(agent.pos[0], agent.pos[1])
-                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.direction}})
+                result["Cars"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z, "dir": agent.now_direction}})
             if isinstance(agent, TrafficLight):
                 result["TrafficLights"].append(({"id": agent.id, "pos": agent.pos, "state": agent.state}))
+            if isinstance(agent, Pedestrian):
+                unity_x, unity_z = unity_pos(agent.pos[0], agent.pos[1])
+                result["Pedestrians"].append({"id": agent.unique_id, "pos": {"x": unity_x, "z": unity_z}})
                 
         return result
 
@@ -245,18 +258,15 @@ class AgentMessageElement(mesa.visualization.TextElement):
     """
     Clase para visualizar mensajes de los agentes en la interfaz de Mesa.
     """
-
     def __init__(self):
         """
         Constructor de la clase.
         """
-
         super().__init__()
 
     def render(self, model):
         """
         Renderiza los mensajes de los agentes en la interfaz de Mesa.
         """
-
         # Recupera y devuelve los mensajes de los agentes
         return model.get_agent_messages()
