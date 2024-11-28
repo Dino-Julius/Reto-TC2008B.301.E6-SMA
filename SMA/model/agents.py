@@ -18,8 +18,7 @@ from mesa import Agent
 
 import networkx as nx
 
-from model.environment import parking_spots
-from model.utils import Directions, RawDirections, find_parking_number
+from model.utils import Directions, RawDirections
 
 
 class SimpleCar(Agent):

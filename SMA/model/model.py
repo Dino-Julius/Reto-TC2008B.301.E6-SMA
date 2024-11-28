@@ -14,8 +14,6 @@ from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 from mesa.time import RandomActivation
 
-import networkx as nx
-
 from model.agents import SimpleCar, Pedestrian, Building, Roundabout, TrafficLight, Road, Parking
 from model.environment import parking_spots
 from model.utils import parse_environment, find_parking_spots, unity_pos
@@ -61,35 +59,34 @@ class MovilityModel(Model):
 
         self.simpleCar_agents_limit = simplecar_agents_limit
 
-        # Initialize other
         self.message = []
         self.step_count = 0
 
-        # Parse the environment
+        # Parserear el entorno
         self.roads, self.buildings, _, self.traffic_lights, self.roundabouts = parse_environment(environment)
 
-        # Parse the parking spots
+        # Parsrear los lugares de estacionamiento
         self.parsed_parking_spots = find_parking_spots(parking_spots)
 
-        # Place the agents in the grid
+        # Colocar las carreteras en la cuadrícula
         for road in self.roads:
             road_agent = Road(self.next_id(), self, road["direction"])
             self.schedule.add(road_agent)
             self.grid.place_agent(road_agent, (road["x"], road["y"]))
 
-        # Place the buildings in the grid
+        # Coloca los edificios en la cuadrícula
         for building in self.buildings:
             building_agent = Building(self.next_id(), self)
             self.schedule.add(building_agent)
             self.grid.place_agent(building_agent, (building["x"], building["y"]))
 
-        # Place the parking spots in the grid
+        # Coloca los lugares de estacionamiento en la cuadrícula
         for parking in self.parsed_parking_spots:
             # print("parking values: ", parking)
             parking_agent = Parking(self.next_id(), self, direction=None, parking_id=parking["id"])
             self.schedule.add(parking_agent)
             self.grid.place_agent(parking_agent, (parking["x"], parking["y"]))
-            # Determine the exit direction of the parking slot based on the neighboring road cells.
+            # Determina la dirección de salida del lugar de estacionamiento basándose en las celdas de carretera vecinas.
             neighbors = self.grid.get_neighborhood(parking_agent.pos, moore=False, include_center=False)
             for neighbor in neighbors:
                 cell_contents = self.grid.get_cell_list_contents([neighbor])
@@ -106,7 +103,7 @@ class MovilityModel(Model):
                         elif dy == -1:
                             parking_agent.direction = 'DW'
 
-        # Place the traffic lights in the grid
+        # Coloca los semáforos en la cuadrícula
         for i, traffic_light in enumerate(self.traffic_lights):
             initial_state = "green" if i % 4 < 2 else "red"
             tl_agent = TrafficLight(self.next_id(), self, i, direction=None, initial_state=initial_state)
@@ -153,46 +150,19 @@ class MovilityModel(Model):
                             else:
                                 tl_agent.direction = 'LF'
 
-        # Place the roundabouts in the grid
+        # Coloca las rotondas en la cuadrícula
         for roundabout in self.roundabouts:
             rd_agent = Roundabout(self.next_id(), self)
             self.schedule.add(rd_agent)
             self.grid.place_agent(rd_agent, (roundabout["x"], roundabout["y"]))
 
-        # Place the cars in the grid
-        '''
-        for i in range(simplecar_agents_limit):
-            # Salidas peligrosas: 3, 7, 13
-            start_index = self.random.choice(range(len(self.parsed_parking_spots)))
-
-            while start_index == 3 or start_index == 7 or start_index == 13:
-                start_index = self.random.choice(range(len(self.parsed_parking_spots)))
-
-            destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
-
-            while destination_index == start_index:
-                destination_index = self.random.choice(range(len(self.parsed_parking_spots)))
-
-            # start_index = 1
-            # destination_index = 8
-
-            start_parking = self.parsed_parking_spots[start_index - 1]
-            destination_parking = self.parsed_parking_spots[destination_index - 1]
-
-            start_coords = (start_parking["x"], start_parking["y"])
-            destination_coords = (destination_parking["x"], destination_parking["y"])
-
-            simpleCar_Agent = SimpleCar(self.next_id(), self, i, start_coords, destination_coords)
-
-            self.schedule.add(simpleCar_Agent)
-            self.message.append(f"Vehículo {simpleCar_Agent.id} inicia en {start_index} y va a {destination_index}")
-        '''
         # Conjunto de lugares utilizados
         self.used_start_spots = set()
         self.used_destination_spots = set()
         # Salidas peligrosas: 3, 7, 13
         self.dangerous_exits = [2, 6, 12]  # Índices peligrosos (restados 1)
 
+        # Coloca los coches en la cuadrícula
         for i in range(simplecar_agents_limit):
 
             start_index = i
@@ -230,7 +200,7 @@ class MovilityModel(Model):
         # Obtener todas las posiciones de celdas BL
         bl_positions = [(x, y) for x in range(self.width) for y in range(self.height) if any(isinstance(agent, Building) for agent in self.grid.get_cell_list_contents((x, y)))]
         
-        # Place the pedestrians in the grid
+        # Coloca los peatones en la cuadrícula
         for i in range(pedestrian_agents_limit):
             if bl_positions:
                 pos = self.random.choice(bl_positions)

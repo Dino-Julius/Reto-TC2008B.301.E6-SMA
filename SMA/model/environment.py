@@ -1,25 +1,25 @@
 """
-This is a representation of the city where the agent will move in a grid.
+Esta es una representación de la ciudad donde el agente se moverá en una cuadrícula.
 
-Movement abbreviations in CITY:
-    DW: Down
-    UP: Up
-    LF: Left
-    RH: Right
-    TL: Traffic Light
-    PK: Parking
-    BL: Building
-    RD: Roundabout
+Abreviaciones de movimiento en CITY:
+    DW: Abajo
+    UP: Arriba
+    LF: Izquierda
+    RH: Derecha
+    TL: Semáforo
+    PK: Estacionamiento
+    BL: Edificio
+    RD: Rotonda
 
-Description of parking_spots:
-    The key is the parking spot id.
-    The value is a tuple with the coordinates (row, col) of the parking spot.
-    They are already ordered in the mesa axis system
+Descripción de parking_spots:
+    La clave es el id del estacionamiento.
+    El valor es una tupla con las coordenadas (fila, columna) del estacionamiento.
+    Ya están ordenados en el sistema de ejes de mesa.
 
-Description of street_directions:
-    The key is a tuple with the coordinates (row, col) of the street.
-    The value is a list with the possible movements that can be made from that street.
-    The movements are represented by the abbreviations used in CITY.
+Descripción de street_directions:
+    La clave es una tupla con las coordenadas (fila, columna) de la calle.
+    El valor es una lista con los movimientos posibles que se pueden hacer desde esa calle.
+    Los movimientos están representados por las abreviaciones usadas en CITY.
 """
 CITY = [
     ["DW", "DW", "LF", "LF", "LF", "LF", "LF", "LF", "TL", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF", "LF"],

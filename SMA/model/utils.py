@@ -5,6 +5,8 @@ En Mesa, las celdas de la cuadrícula se indexan por [x, y], donde [0, 0] se asu
 Funciones incluidas:
 - parse_environment: Analiza la cuadrícula del entorno y devuelve datos sobre carreteras, edificios, estacionamientos, semáforos y rotondas.
 - find_parking_spots: Convierte un diccionario de espacios de estacionamiento en una lista de datos de espacios de estacionamiento.
+- unity_pos: Convierte las posiciones de mesa en posiciones válidas según la organización del plano en el visualizador 3D en Unity.
+- find_parking_number: Busca el número de estacionamiento correspondiente a las coordenadas.
 """
 
 from enum import Enum
