@@ -86,7 +86,7 @@ Para descargar y ejecutar el proyecto, sigue estos pasos:
 
 ### Ejecutar el servidor flask para usar el visualizador de Unity:
 
-4. Para ejecutar el servidor, ejecuta el siguiente comando en la terminal:
+4. Para ejecutar el servidor, ejecuta el siguiente comando en la terminal:  
     ```sh
     python app.py
     ```
