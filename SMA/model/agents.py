@@ -1,11 +1,12 @@
 """
 Este módulo define varias clases de agentes para un modelo de simulación de ciudad utilizando el framework Mesa. Los agentes incluyen:
 1. `SimpleCar`: Representa un coche que se mueve desde un lugar de estacionamiento inicial hasta un lugar de estacionamiento de destino, respetando las direcciones de las carreteras, otros coches y semáforos.
-2. `Building`: Representa un edificio estático en la ciudad para fines de visualización.
-3. `Roundabout`: Representa una glorieta estática en la ciudad para fines de visualización.
-4. `TrafficLight`: Representa un semáforo que alterna entre los estados rojo y verde basado en un temporizador.
-5. `Road`: Representa una carretera estática en la ciudad para fines de visualización.
-6. `Parking`: Representa un estacionamiento estático en la ciudad para fines de visualización.
+2. `Pedestrian`: Representa un peatón que se mueve aleatoriamente en celdas de edificios o celdas con semáforos en rojo.
+3. `Building`: Representa un edificio estático en la ciudad para fines de visualización.
+4. `Roundabout`: Representa una glorieta estática en la ciudad para fines de visualización.
+5. `TrafficLight`: Representa un semáforo que alterna entre los estados rojo y verde basado en un temporizador.
+6. `Road`: Representa una carretera estática en la ciudad para fines de visualización.
+7. `Parking`: Representa un estacionamiento estático en la ciudad para fines de visualización.
 Cada clase de agente hereda de la clase Agent de Mesa e implementa los métodos requeridos para la simulación.
 El agente SimpleCar incluye métodos para aplicar movimientos, moverse basado en direcciones válidas y avanzar en la simulación.
 El agente TrafficLight incluye métodos para alternar su estado y avanzar en la simulación basado en un temporizador.
@@ -45,8 +46,7 @@ class SimpleCar(Agent):
         self.update_direction()
 
         try:
-            self.route = nx.shortest_path(
-                self.graph, self.pos, self.destination)
+            self.route = nx.shortest_path(self.graph, self.pos, self.destination)
             self.route_directions = self.get_directions_from_path(self.route)
         except nx.NetworkXNoPath:
             self.route = None
@@ -90,8 +90,7 @@ class SimpleCar(Agent):
                 valid_moves.append(next_position)
             else:
                 # Verificar si hay semáforo en rojo en la próxima posición
-                cell_contents = self.model.grid.get_cell_list_contents([
-                                                                       next_position])
+                cell_contents = self.model.grid.get_cell_list_contents([next_position])
                 if any(isinstance(agent, TrafficLight) and agent.state == "rojo" for agent in cell_contents):
                     continue  # Evitar moverse si el semáforo está en rojo
 
@@ -173,24 +172,21 @@ class SimpleCar(Agent):
         cell_contents = self.model.grid.get_cell_list_contents([next_position])
 
         # Verificar si hay un semáforo en rojo
-        traffic_light = any(isinstance(agent, TrafficLight)
-                            and agent.state == "red" for agent in cell_contents)
+        traffic_light = any(isinstance(agent, TrafficLight) and agent.state == "red" for agent in cell_contents)
 
         # Verificar si hay otro coche en la siguiente posición
-        other_car = any(isinstance(agent, SimpleCar)
-                        for agent in cell_contents)
+        other_car = any(isinstance(agent, SimpleCar) for agent in cell_contents)
 
-        if not traffic_light and not other_car:
+        # ! No verificar otro coche en la siguiente celda 
+        if not traffic_light:
             # Mover al siguiente nodo en la ruta
             self.model.grid.move_agent(self, next_position)
             self.route.pop(0)  # Actualizar la ruta
-        elif other_car or self.destination != self.pos:
+        elif self.destination != self.pos:
             # Recalcular la ruta si hay otro coche en la siguiente posición
             try:
-                self.route = nx.shortest_path(
-                    self.graph, self.pos, self.destination)
-                self.route_directions = self.get_directions_from_path(
-                    self.route)
+                self.route = nx.shortest_path(self.graph, self.pos, self.destination)
+                self.route_directions = self.get_directions_from_path(self.route)
             except nx.NetworkXNoPath:
                 self.route = None
                 pos_number = find_parking_number(self.pos, parking_spots)
@@ -209,24 +205,12 @@ class SimpleCar(Agent):
             # print(f"Car {self.unique_id} is waiting at {self.pos}")
             pass
 
-    index = 0
-    directions = []
     def step(self):
         """
         Mientras el coche no haya llegado a su destino, seguirá moviéndose.
         """
 
-        # self.update_direction()
-        if self.route_directions:
-            self.now_direction = self.route_directions[SimpleCar.index]
-        else:
-            self.update_direction()
-
-        SimpleCar.directions.append(self.now_direction)
-        print(SimpleCar.directions)
-        print(self.route_directions)
-        # print(self.route_directions[SimpleCar.index])
-        SimpleCar.index += 1
+        self.update_direction()
         if self.pos == self.destination:
             # print(f"Car {self.unique_id} has reached its destination.")
             return
@@ -238,29 +222,38 @@ class SimpleCar(Agent):
 
 class Pedestrian(Agent):
     """
-    Agente que representa a un peatón simple en la ciudad. Renderiza al peatón en la cuadrícula.
+    Agente que representa un peatón en la ciudad. Renderiza un peatón en la cuadrícula.
     """
-    ...
 
     def __init__(self, unique_id, model):
         """
-        Crear un nuevo agente de coche con un ID único, referencia al modelo, posición de inicio y posición de destino.
+        Crear un nuevo agente de peatón con un ID único y referencia al modelo.
         """
-
         super().__init__(unique_id, model)
 
-    def move():
+    def random_move(self):
         """
-        Función de movimiento aleatorio del peatón,
+        Mover el peatón aleatoriamente solo en celdas de edificios (BL) o celdas con semáforos en rojo.
         """
-        ...
+        possible_moves = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+        valid_moves = []
+
+        for move in possible_moves:
+            cell_contents = self.model.grid.get_cell_list_contents(move)
+            if any(isinstance(agent, Building) for agent in cell_contents):
+                valid_moves.append(move)
+            elif any(isinstance(agent, TrafficLight) and agent.state == 'red' for agent in cell_contents):
+                valid_moves.append(move)
+
+        if valid_moves:
+            new_position = self.random.choice(valid_moves)
+            self.model.grid.move_agent(self, new_position)
 
     def step(self):
         """
-        Mientras el coche no haya llegado a su destino, seguirá moviéndose.
+        Realizar un movimiento aleatorio en cada paso.
         """
-
-        self.move()
+        self.random_move()
 
 
 class Building(Agent):
@@ -333,8 +326,7 @@ class TrafficLight(Agent):
         """
 
         waiting_cars = 0
-        neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=False, include_center=False)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=False, include_center=False)
         for neighbor in neighbors:
             if isinstance(neighbor, SimpleCar) and neighbor.route and neighbor.route[0] == self.pos:
                 waiting_cars += 1
@@ -351,8 +343,7 @@ class TrafficLight(Agent):
             self.counter = 0
 
         # Comunicación con el semáforo más cercano
-        neighbors = self.model.grid.get_neighbors(
-            self.pos, moore=False, include_center=False)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore=False, include_center=False)
         for neighbor in neighbors:
             if isinstance(neighbor, TrafficLight) and neighbor.direction == self.direction:
                 my_waiting_cars = self.count_waiting_cars()
